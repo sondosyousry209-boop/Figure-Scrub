@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
+
+<title>Figure Scrub</title>
+
+<link
+    rel="stylesheet"
+    href="style.css"
+>
+
+</head>
+
+<body>
+
+<!-- ==================== NAVBAR ==================== -->
+
+<header class="navbar">
+<a
+    href="index.html"
+    class="logo"
+>
+    FIGURE SCRUB
+</a>
+
+
+<nav class="nav-links">
+
+    <a href="shop.html">
+        Shop
+    </a>
+
+    <a href="#about">
+        About
+    </a>
+
+    <a href="#contact">
+        Contact
+    </a>
+
+</nav>
+
+
+<div class="nav-actions">
+
+    <button
+        class="search-btn"
+        type="button"
+        aria-label="Search"
+    >
+        Search
+    </button>
+
+
+    <button
+        class="cart-btn"
+        type="button"
+        aria-label="Shopping Cart"
+    >
+
+        Cart
+
+        <span class="cart-count">
+            0
+        </span>
+
+    </button>
+
+</div>
+</header>
+
+<!-- ==================== MAIN ==================== -->
+
+<main>
+<!-- ==================== HERO ==================== -->
+
+<section class="hero">
+
+    <div class="hero-content">
+
+        <p class="hero-label">
+            FIGURE SCRUB
+        </p>
+
+
+        <h1>
+            Designed to Move.<br>
+            Made to Perform.
+        </h1>
+
+
+        <p class="hero-description">
+
+            Premium scrubs designed for comfort,
+            confidence, and everyday performance.
+
+        </p>
+
+
+        <a
+            href="#shop"
+            class="hero-button"
+        >
+            SHOP NOW →
+        </a>
+
+    </div>
+
+
+    <div class="hero-image">
+
+        <div class="image-placeholder">
+            FIGURE SCRUB
+        </div>
+
+    </div>
+
+</section>
+
+
+
+<!-- ==================== FEATURED PRODUCTS ==================== -->
+
+<section
+    class="featured"
+    id="shop"
+>
+
+    <div class="section-heading">
+
+        <p>
+            THE FIGURE EDIT
+        </p>
+
+
+        <h2>
+            Featured Scrubs
+        </h2>
+
+    </div>
+
+
+    <div
+        class="products-grid"
+        id="featuredProducts"
+    >
+
+        <!-- Products loaded from Supabase -->
+
+    </div>
+
+
+    <a
+        href="shop.html"
+        class="view-all"
+    >
+        VIEW MORE →
+    </a>
+
+</section>
+
+
+
+<!-- ==================== BEST SELLERS ==================== -->
+
+<section
+    class="best-sellers"
+    id="bestSellersSection"
+>
+
+    <div class="section-heading">
+
+        <p>
+            BEST SELLERS
+        </p>
+
+
+        <h2>
+            Most Loved
+        </h2>
+
+    </div>
+
+
+    <div
+        class="products-grid"
+        id="bestSellersProducts"
+    >
+
+        <!-- Most Loved products loaded from Supabase -->
+
+    </div>
+
+
+    <a
+        href="shop.html"
+        class="view-all"
+    >
+        VIEW MORE →
+    </a>
+
+</section>
+
+
+
+<!-- ==================== NEW ARRIVALS ==================== -->
+
+<section
+    class="new-arrivals"
+    id="newArrivalsSection"
+>
+
+    <div class="section-heading">
+
+        <p>
+            NEW ARRIVALS
+        </p>
+
+
+        <h2>
+            Just In
+        </h2>
+
+    </div>
+
+
+    <div
+        class="products-grid"
+        id="newArrivalsProducts"
+    >
+
+        <!-- Just In products loaded from Supabase -->
+
+    </div>
+
+
+    <a
+        href="shop.html"
+        class="view-all"
+    >
+        VIEW MORE →
+    </a>
+
+</section>
+
+
+
+<!-- ==================== BRAND SECTION ==================== -->
+
+<section
+    class="brand-section"
+    id="about"
+>
+
+    <p>
+        ABOUT FIGURE SCRUB
+    </p>
+
+
+    <h2>
+        Designed for your<br>
+        everyday movement.
+    </h2>
+
+
+    <p>
+
+        Figure Scrub combines modern design,
+        comfort, and performance to create
+        scrubs made for the way you work.
+
+    </p>
+
+</section>
+
+
+
+<!-- ==================== NEWSLETTER ==================== -->
+
+<section class="newsletter">
+
+    <p>
+        WELCOME TO FIGURE SCRUB
+    </p>
+
+
+    <h2>
+        Get 5% Off Your First Order
+    </h2>
+
+
+    <p>
+
+        Join our newsletter and receive your
+        welcome discount.
+
+    </p>
+
+
+
+    <form
+        class="newsletter-form"
+        id="newsletterForm"
+    >
+
+        <input
+            type="email"
+            id="newsletterEmail"
+            placeholder="Enter your email address"
+            autocomplete="email"
+            required
+        >
+
+
+        <button
+            type="submit"
+            id="newsletterButton"
+        >
+            GET MY 5% OFF
+        </button>
+
+    </form>
+
+
+
+    <div
+        class="newsletter-success"
+        hidden
+    >
+
+        You're In.
+        Your 5% discount is ready.
+
+    </div>
+
+</section>
+
+
+
+<!-- ==================== CONTACT ==================== -->
+
+<section
+    class="contact-section"
+    id="contact"
+>
+
+    <p>
+        NEED HELP?
+    </p>
+
+
+    <h2>
+        We're here for you.
+    </h2>
+
+
+    <p>
+
+        Have a question or need help with your order?
+        Contact our team and we'll get back to you.
+
+    </p>
+
+
+    <a href="contact.html">
+        CONTACT US →
+    </a>
+
+</section>
+</main>
+
+<!-- ==================== FOOTER ==================== -->
+
+<footer class="footer">
+<div class="footer-logo">
+    FIGURE SCRUB
+</div>
+
+
+<p>
+    © 2026 Figure Scrub.
+    All rights reserved.
+</p>
+</footer>
+
+<!-- ==================== QUICK VIEW MODAL ==================== -->
+
+<div
+    class="product-modal"
+    id="productModal"
+    hidden
+>
+<div class="modal-overlay"></div>
+
+
+<div class="modal-content">
+
+
+    <button
+        class="modal-close"
+        type="button"
+        aria-label="Close product"
+    >
+        ×
+    </button>
+
+
+
+    <div class="modal-image">
+
+        <div class="product-placeholder">
+            FIGURE SCRUB
+        </div>
+
+    </div>
+
+
+
+    <div class="modal-details">
+
+        <p class="modal-label">
+            FIGURE SCRUB
+        </p>
+
+
+        <h2 id="modalProductName">
+            FIGURE CLASSIC SCRUB
+        </h2>
+
+
+        <p id="modalProductColor">
+            Navy
+        </p>
+
+
+
+        <div class="modal-price">
+
+            <span
+                class="old-price"
+                id="modalOldPrice"
+            >
+                1,500 EGP
+            </span>
+
+
+            <span
+                class="current-price"
+                id="modalPrice"
+            >
+                1,250 EGP
+            </span>
+
+        </div>
+
+
+
+        <!-- SIZE -->
+
+        <div class="modal-section">
+
+            <label>
+                SELECT SIZE
+            </label>
+
+
+            <div class="size-options">
+
+                <!--
+                    JavaScript will generate
+                    the actual sizes from Supabase.
+                -->
+
+            </div>
+
+        </div>
+
+
+
+        <!-- QUANTITY -->
+
+        <div class="modal-section">
+
+            <label>
+                QUANTITY
+            </label>
+
+
+            <div class="quantity-selector">
+
+                <button
+                    type="button"
+                    id="decreaseQty"
+                    data-action="minus"
+                    aria-label="Decrease quantity"
+                >
+                    −
+                </button>
+
+
+                <span id="quantityValue">
+                    1
+                </span>
+
+
+                <button
+                    type="button"
+                    id="increaseQty"
+                    data-action="plus"
+                    aria-label="Increase quantity"
+                >
+                    +
+                </button>
+
+            </div>
+
+        </div>
+
+
+
+        <button
+            class="modal-add-cart"
+            type="button"
+        >
+            ADD TO CART
+        </button>
+
+
+    </div>
+
+</div>
+</div>
+
+<!-- ==================== CART DRAWER ==================== -->
+
+<div
+    class="cart-drawer"
+    id="cartDrawer"
+    hidden
+>
+<div class="cart-overlay"></div>
+
+
+<div class="cart-panel">
+
+
+    <!-- Cart Header -->
+
+    <div class="cart-header">
+
+        <div>
+
+            <p>
+                YOUR BAG
+            </p>
+
+
+            <h2>
+                Shopping Cart
+            </h2>
+
+        </div>
+
+
+        <button
+            class="cart-close"
+            type="button"
+            aria-label="Close cart"
+        >
+            ×
+        </button>
+
+    </div>
+
+
+
+    <!-- Cart Items -->
+
+    <div
+        class="cart-items"
+        id="cartItems"
+    >
+
+        <div class="empty-cart">
+
+            <p>
+                Your cart is empty.
+            </p>
+
+
+            <button
+                type="button"
+                class="continue-shopping"
+            >
+                CONTINUE SHOPPING
+            </button>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- Cart Footer -->
+
+    <div class="cart-footer">
+
+        <div class="cart-summary">
+
+            <span>
+                SUBTOTAL
+            </span>
+
+
+            <strong id="cartSubtotal">
+                0 EGP
+            </strong>
+
+        </div>
+
+
+        <p class="cart-note">
+
+            Shipping and discounts calculated
+            at checkout.
+
+        </p>
+
+
+        <button
+            class="checkout-btn"
+            type="button"
+        >
+            CHECKOUT
+        </button>
+
+    </div>
+
+
+</div>
+</div>
+
+<!-- ==================== COUPON BAR ==================== -->
+
+<div
+    class="coupon-bar"
+    id="couponBar"
+    aria-label="Available coupons"
+>
+<div
+    class="coupon-bar-track"
+    id="couponBarTrack"
+></div>
+</div>
+
+<!-- ==================== JAVASCRIPT ==================== -->
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script src="script.js"></script>
+
+<script>
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    const newsletterForm =
+        document.getElementById("newsletterForm");
+
+    const newsletterEmail =
+        document.getElementById("newsletterEmail");
+
+    const newsletterButton =
+        document.getElementById("newsletterButton");
+
+    const newsletterSuccess =
+        document.querySelector(".newsletter-success");
+
+
+    if (!newsletterForm) {
+        return;
+    }
+
+
+    newsletterForm.addEventListener(
+        "submit",
+        async function (event) {
+
+            event.preventDefault();
+
+            event.stopImmediatePropagation();
+
+
+            const email =
+                newsletterEmail.value
+                    .trim()
+                    .toLowerCase();
+
+
+            if (!email) {
+                return;
+            }
+
+
+            if (
+                !email.includes("@") ||
+                !email.includes(".")
+            ) {
+
+                newsletterEmail.focus();
+
+                return;
+            }
+
+
+            newsletterButton.disabled = true;
+
+            newsletterButton.textContent =
+                "SUBMITTING...";
+
+
+            try {
+
+                const SUPABASE_URL =
+                    "https://fsbzopacumiuwjsegsgu.supabase.co";
+
+
+                const SUPABASE_KEY =
+                    "sb_publishable_KBYOhE4HKCT-BsrKHgOlPg_Iry7wFWY";
+
+
+                const client =
+                    window.supabase.createClient(
+                        SUPABASE_URL,
+                        SUPABASE_KEY
+                    );
+
+
+                const { data, error } =
+                    await client
+                        .from("subscribers")
+                        .insert([
+                            {
+                                email: email
+                            }
+                        ])
+                        .select()
+                        .single();
+
+
+                if (error) {
+
+
+                    if (
+                        error.code === "23505" ||
+                        error.message
+                            ?.toLowerCase()
+                            .includes("duplicate")
+                    ) {
+
+                        newsletterButton.textContent =
+                            "ALREADY SUBSCRIBED";
+
+
+                        if (newsletterSuccess) {
+
+                            newsletterSuccess.hidden = false;
+
+                            newsletterSuccess.textContent =
+                                "You're already subscribed. Your 5% discount is ready.";
+
+                        }
+
+                        return;
+                    }
+
+
+                    throw error;
+
+                }
+
+
+                console.log(
+                    "Newsletter subscriber saved:",
+                    data
+                );
+
+
+                newsletterForm.reset();
+
+
+                newsletterButton.textContent =
+                    "SUCCESS ✓";
+
+
+                if (newsletterSuccess) {
+
+                    newsletterSuccess.hidden = false;
+
+                    newsletterSuccess.textContent =
+                        "You're In. Your 5% discount is ready.";
+
+                }
+
+
+            } catch (error) {
+
+
+                console.error(
+                    "Newsletter error:",
+                    error
+                );
+
+
+                newsletterButton.textContent =
+                    "TRY AGAIN";
+
+
+            } finally {
+
+
+                setTimeout(function () {
+
+
+                    newsletterButton.disabled =
+                        false;
+
+
+                    if (
+                        newsletterButton.textContent !==
+                            "SUCCESS ✓" &&
+                        newsletterButton.textContent !==
+                            "ALREADY SUBSCRIBED"
+                    ) {
+
+                        newsletterButton.textContent =
+                            "GET MY 5% OFF";
+
+                    }
+
+
+                }, 3000);
+
+            }
+
+        },
+        true
+    );
+
+});
+
+</script>
+
+</body>
+
+</html>

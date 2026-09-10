@@ -1,0 +1,447 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Figure Scrub — Admin Login</title>
+
+    <link rel="stylesheet" href="admin-login.css">
+</head>
+
+<body>
+
+    <div class="login-container">
+
+        <div class="login-card">
+
+            <div class="logo">
+                FS
+            </div>
+
+            <h1>Admin Login</h1>
+
+            <p class="subtitle">
+                Figure Scrub Administration
+            </p>
+
+            <form id="loginForm">
+
+                <div class="form-group">
+
+                    <label for="email">
+                        Email
+                    </label>
+
+                    <input
+                        type="email"
+                        id="email"
+                        placeholder="admin@figurescrub.com"
+                        autocomplete="email"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="password">
+                        Password
+                    </label>
+
+                    <input
+                        type="password"
+                        id="password"
+                        placeholder="Enter your password"
+                        autocomplete="current-password"
+                        required
+                    >
+
+                </div>
+
+
+                <button
+                    type="submit"
+                    class="login-btn"
+                    id="loginBtn"
+                >
+                    LOGIN
+                </button>
+
+
+                <div
+                    id="message"
+                    class="message"
+                ></div>
+
+            </form>
+
+
+            <a
+                href="index.html"
+                class="back-link"
+            >
+                ← Back to Website
+            </a>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         SUPABASE
+    ====================================================== -->
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+
+    <script>
+
+        /* =====================================================
+           SUPABASE CONFIG
+        ===================================================== */
+
+        const SUPABASE_URL =
+            "https://fsbzopacumiuwjsegsgu.supabase.co";
+
+        const SUPABASE_KEY =
+            "sb_publishable_KBYOhE4HKCT-BsrKHgOlPg_Iry7wFWY";
+
+
+        const supabaseClient =
+            window.supabase.createClient(
+                SUPABASE_URL,
+                SUPABASE_KEY
+            );
+
+
+        /* =====================================================
+           ELEMENTS
+        ===================================================== */
+
+        const loginForm =
+            document.getElementById("loginForm");
+
+        const loginBtn =
+            document.getElementById("loginBtn");
+
+        const message =
+            document.getElementById("message");
+
+
+        /* =====================================================
+           MESSAGE
+        ===================================================== */
+
+        function showMessage(text, type) {
+
+            message.textContent = text;
+
+            message.className =
+                "message " + type;
+        }
+
+
+        /* =====================================================
+           LOGIN
+        ===================================================== */
+
+        loginForm.addEventListener(
+            "submit",
+            async function (event) {
+
+                event.preventDefault();
+
+
+                const email =
+                    document
+                        .getElementById("email")
+                        .value
+                        .trim();
+
+                const password =
+                    document
+                        .getElementById("password")
+                        .value;
+
+
+                if (!email || !password) {
+
+                    showMessage(
+                        "Please enter your email and password.",
+                        "error"
+                    );
+
+                    return;
+                }
+
+
+                loginBtn.disabled = true;
+
+                loginBtn.textContent =
+                    "LOGGING IN...";
+
+                message.className =
+                    "message";
+
+                message.textContent = "";
+
+
+                try {
+
+                    /* =========================================
+                       SUPABASE AUTH LOGIN
+                    ========================================== */
+
+                    const {
+                        data,
+                        error
+                    } =
+                        await supabaseClient.auth.signInWithPassword({
+
+                            email: email,
+
+                            password: password
+
+                        });
+
+
+                    if (error) {
+                        throw error;
+                    }
+
+
+                    if (!data || !data.user) {
+
+                        throw new Error(
+                            "Login failed. Please try again."
+                        );
+
+                    }
+
+
+                    /* =========================================
+                       CHECK ADMIN USER
+                    ========================================== */
+
+                    const {
+                        data: adminUser,
+                        error: adminError
+                    } =
+                        await supabaseClient
+                            .from("admin_users")
+                            .select(
+                                "id, email, role"
+                            )
+                            .eq(
+                                "id",
+                                data.user.id
+                            )
+                            .maybeSingle();
+
+
+                    if (adminError) {
+                        throw adminError;
+                    }
+
+
+                    if (!adminUser) {
+
+                        await supabaseClient
+                            .auth
+                            .signOut();
+
+
+                        throw new Error(
+                            "This account is not authorized as an admin."
+                        );
+
+                    }
+
+
+                    /* =========================================
+                       CHECK ROLE
+                    ========================================== */
+
+                    if (
+                        adminUser.role &&
+                        adminUser.role !== "admin"
+                    ) {
+
+                        await supabaseClient
+                            .auth
+                            .signOut();
+
+
+                        throw new Error(
+                            "You do not have admin access."
+                        );
+
+                    }
+
+
+                    /* =========================================
+                       SUCCESS
+                    ========================================== */
+
+                    showMessage(
+                        "Login successful. Redirecting...",
+                        "success"
+                    );
+
+
+                    setTimeout(
+                        function () {
+
+                            window.location.href =
+                                "admin.html";
+
+                        },
+                        700
+                    );
+
+                }
+
+
+                catch (error) {
+
+                    console.error(
+                        "Admin login error:",
+                        error
+                    );
+
+
+                    let errorMessage =
+                        "Something went wrong. Please try again.";
+
+
+                    if (error && error.message) {
+
+                        errorMessage =
+                            error.message;
+
+                    }
+
+
+                    /* =========================================
+                       FRIENDLY SUPABASE ERRORS
+                    ========================================== */
+
+                    if (
+                        errorMessage
+                            .toLowerCase()
+                            .includes("invalid login credentials")
+                    ) {
+
+                        errorMessage =
+                            "Email or password is incorrect.";
+
+                    }
+
+
+                    if (
+                        errorMessage
+                            .toLowerCase()
+                            .includes("email not confirmed")
+                    ) {
+
+                        errorMessage =
+                            "Please confirm your email first.";
+
+                    }
+
+
+                    showMessage(
+                        errorMessage,
+                        "error"
+                    );
+
+
+                    loginBtn.disabled = false;
+
+                    loginBtn.textContent =
+                        "LOGIN";
+
+                }
+
+            }
+        );
+
+
+        /* =====================================================
+           CHECK EXISTING SESSION
+        ===================================================== */
+
+        async function checkExistingSession() {
+
+            try {
+
+                const {
+                    data
+                } =
+                    await supabaseClient
+                        .auth
+                        .getSession();
+
+
+                if (
+                    data &&
+                    data.session &&
+                    data.session.user
+                ) {
+
+                    const {
+                        data: adminUser
+                    } =
+                        await supabaseClient
+                            .from("admin_users")
+                            .select(
+                                "id, email, role"
+                            )
+                            .eq(
+                                "id",
+                                data.session.user.id
+                            )
+                            .maybeSingle();
+
+
+                    if (
+                        adminUser &&
+                        (
+                            !adminUser.role ||
+                            adminUser.role === "admin"
+                        )
+                    ) {
+
+                        window.location.href =
+                            "admin.html";
+
+                    }
+
+                }
+
+            }
+
+            catch (error) {
+
+                console.error(
+                    "Session check error:",
+                    error
+                );
+
+            }
+
+        }
+
+
+        checkExistingSession();
+
+    </script>
+
+</body>
+
+</html>

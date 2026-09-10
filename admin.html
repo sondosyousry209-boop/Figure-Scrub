@@ -1,0 +1,2311 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Figure Scrub | Admin Dashboard</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+
+    <link rel="stylesheet" href="admin.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+
+<body>
+
+    <div class="admin-layout">
+
+        <!-- =====================================================
+             SIDEBAR
+        ====================================================== -->
+
+        <aside class="sidebar">
+
+            <div class="brand">
+                <div class="brand-mark">FS</div>
+
+                <div>
+                    <h1>FIGURE</h1>
+                    <span>SCRUB</span>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+
+                <button class="nav-item active" data-section="dashboard">
+                    <span>⌂</span>
+                    Dashboard
+                </button>
+
+                <button class="nav-item" data-section="products">
+                    <span>◈</span>
+                    Products
+                </button>
+
+                <button class="nav-item" data-section="orders">
+                    <span>▣</span>
+                    Orders
+                </button>
+
+                <button class="nav-item" data-section="customers">
+                    <span>♙</span>
+                    Customers
+                </button>
+
+                <button class="nav-item" data-section="subscribers">
+                    <span>✉</span>
+                    Email Subscribers
+                </button>
+
+                <button class="nav-item" data-section="messages">
+                    <span>◇</span>
+                    Contact Messages
+                </button>
+
+                <button class="nav-item" data-section="coupons">
+                    <span>％</span>
+                    Coupons
+                </button>
+
+                <button class="nav-item" data-section="best-sellers">
+                    <span>★</span>
+                    Best Sellers
+                </button>
+
+                <button class="nav-item" data-section="just-arrived">
+                    <span>✦</span>
+                    Just Arrived
+                </button>
+
+                <button class="nav-item" data-section="sold-out">
+                    <span>!</span>
+                    Sold Out
+                </button>
+
+                <button class="nav-item" data-section="analytics">
+                    <span>◒</span>
+                    Sales & Analytics
+                </button>
+
+                <button class="nav-item" data-section="payments">
+                    <span>₿</span>
+                    Payment Settings
+                </button>
+
+                <button class="nav-item" data-section="website">
+                    <span>⚙</span>
+                    Website Settings
+                </button>
+
+                <button class="nav-item" data-section="account">
+                    <span>♙</span>
+                    Admin Account
+                </button>
+
+            </nav>
+
+            <div class="sidebar-bottom">
+
+                <button id="logoutBtn" class="logout-btn">
+                    <span>↪</span>
+                    Logout
+                </button>
+
+            </div>
+
+        </aside>
+
+
+        <!-- =====================================================
+             MAIN CONTENT
+        ====================================================== -->
+
+        <main class="main-content">
+
+            <!-- TOPBAR -->
+
+            <header class="topbar">
+
+                <div>
+
+                    <p class="eyebrow">
+                        FIGURE SCRUB
+                    </p>
+
+                    <h2 id="pageTitle">
+                        Dashboard
+                    </h2>
+
+                </div>
+
+                <div class="topbar-right">
+
+                    <div class="admin-profile">
+
+                        <div class="profile-avatar">
+                            A
+                        </div>
+
+                        <div>
+                            <strong>Admin</strong>
+                            <small>Store Manager</small>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </header>
+
+
+            <!-- =================================================
+                 DASHBOARD
+            ================================================== -->
+
+            <section id="dashboard" class="page-section active">
+
+                <div class="welcome-row">
+
+                    <div>
+
+                        <p class="section-kicker">
+                            OVERVIEW
+                        </p>
+
+                        <h3>
+                            Welcome back.
+                        </h3>
+
+                        <p class="muted">
+                            Here's what's happening with Figure Scrub today.
+                        </p>
+
+                    </div>
+
+                    <button
+                        class="primary-btn"
+                        data-open-product>
+                        + Add Product
+                    </button>
+
+                </div>
+
+
+                <!-- MAIN STATS -->
+
+                <div class="stats-grid">
+
+                    <div class="stat-card">
+                        <div class="stat-icon">◈</div>
+                        <span>Total Products</span>
+                        <strong id="totalProducts">0</strong>
+                        <small>Active products</small>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon">✓</div>
+                        <span>Available</span>
+                        <strong id="availableProducts">0</strong>
+                        <small>Products in stock</small>
+                    </div>
+
+                    <div class="stat-card danger">
+                        <div class="stat-icon">!</div>
+                        <span>Sold Out</span>
+                        <strong id="outOfStock">0</strong>
+                        <small>Need restocking</small>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon">▣</div>
+                        <span>Total Orders</span>
+                        <strong id="totalOrders">0</strong>
+                        <small>All orders</small>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon">◷</div>
+                        <span>Pending Orders</span>
+                        <strong id="pendingOrders">0</strong>
+                        <small>Need attention</small>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon">✓</div>
+                        <span>Completed Orders</span>
+                        <strong id="completedOrders">0</strong>
+                        <small>Delivered orders</small>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon">♙</div>
+                        <span>Total Customers</span>
+                        <strong id="totalCustomers">0</strong>
+                        <small>Customer accounts</small>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon">★</div>
+                        <span>VIP Customers</span>
+                        <strong id="vipCustomers">0</strong>
+                        <small>More than 3 orders</small>
+                    </div>
+
+                    <div class="stat-card wide-stat">
+                        <div class="stat-icon">₤</div>
+                        <span>Total Sales</span>
+                        <strong id="totalSales">0 EGP</strong>
+                        <small>Delivered orders</small>
+                    </div>
+
+                </div>
+
+
+                <!-- ORDER STATUS -->
+
+                <div class="dashboard-grid">
+
+                    <div class="panel">
+
+                        <div class="panel-header">
+
+                            <div>
+                                <p class="section-kicker">
+                                    ORDERS
+                                </p>
+
+                                <h3>
+                                    Order Status
+                                </h3>
+                            </div>
+
+                        </div>
+
+                        <div class="status-grid">
+
+                            <div class="status-box pending">
+                                <span>Pending</span>
+                                <strong id="dashboardPending">0</strong>
+                            </div>
+
+                            <div class="status-box confirmed">
+                                <span>Confirmed</span>
+                                <strong id="dashboardConfirmed">0</strong>
+                            </div>
+
+                            <div class="status-box processing">
+                                <span>Processing</span>
+                                <strong id="dashboardProcessing">0</strong>
+                            </div>
+
+                            <div class="status-box shipping">
+                                <span>Shipped</span>
+                                <strong id="dashboardShipped">0</strong>
+                            </div>
+
+                            <div class="status-box delivered">
+                                <span>Delivered</span>
+                                <strong id="dashboardDelivered">0</strong>
+                            </div>
+
+                            <div class="status-box cancelled">
+                                <span>Cancelled</span>
+                                <strong id="dashboardCancelled">0</strong>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- SALES OVERVIEW -->
+
+                    <div class="panel">
+
+                        <div class="panel-header">
+
+                            <div>
+
+                                <p class="section-kicker">
+                                    REVENUE
+                                </p>
+
+                                <h3>
+                                    Sales Overview
+                                </h3>
+
+                            </div>
+
+                            <select id="salesPeriod">
+
+                                <option value="7">
+                                    Last 7 Days
+                                </option>
+
+                                <option value="30">
+                                    Last 30 Days
+                                </option>
+
+                                <option value="90">
+                                    Last 90 Days
+                                </option>
+
+                                <option value="365">
+                                    Last Year
+                                </option>
+
+                            </select>
+
+                        </div>
+
+                        <div
+                            class="sales-chart"
+                            id="salesChart">
+
+                            <div class="empty-chart">
+                                Sales data will appear here.
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- RECENT ORDERS -->
+
+                <div class="dashboard-grid">
+
+                    <div class="panel">
+
+                        <div class="panel-header">
+
+                            <div>
+
+                                <p class="section-kicker">
+                                    RECENT
+                                </p>
+
+                                <h3>
+                                    Recent Orders
+                                </h3>
+
+                            </div>
+
+                            <button
+                                class="text-btn"
+                                data-go="orders">
+                                View All
+                            </button>
+
+                        </div>
+
+                        <div class="table-wrapper">
+
+                            <table>
+
+                                <thead>
+
+                                    <tr>
+                                        <th>Order</th>
+                                        <th>Customer</th>
+                                        <th>Total</th>
+                                        <th>Status</th>
+                                    </tr>
+
+                                </thead>
+
+                                <tbody id="recentOrdersTable"></tbody>
+
+                            </table>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- BEST SELLING -->
+
+                    <div class="panel">
+
+                        <div class="panel-header">
+
+                            <div>
+
+                                <p class="section-kicker">
+                                    PERFORMANCE
+                                </p>
+
+                                <h3>
+                                    Best Selling Products
+                                </h3>
+
+                            </div>
+
+                            <button
+                                class="text-btn"
+                                data-go="best-sellers">
+                                View All
+                            </button>
+
+                        </div>
+
+                        <div
+                            id="topProductsList"
+                            class="top-products">
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- =================================================
+                 PRODUCTS
+            ================================================== -->
+
+            <section
+                id="products"
+                class="page-section">
+
+                <div class="section-heading">
+
+                    <div>
+
+                        <p class="section-kicker">
+                            CATALOG
+                        </p>
+
+                        <h3>
+                            Products
+                        </h3>
+
+                        <p class="muted">
+                            Add, edit and manage your Figure Scrub products.
+                        </p>
+
+                    </div>
+
+                    <button
+                        class="primary-btn"
+                        data-open-product>
+                        + Add Product
+                    </button>
+
+                </div>
+
+
+                <div class="toolbar">
+
+                    <input
+                        type="search"
+                        id="productSearch"
+                        placeholder="Search products...">
+
+                    <select id="productCategoryFilter">
+
+                        <option value="">
+                            All Categories
+                        </option>
+
+                        <option value="Scrub Sets">
+                            Scrub Sets
+                        </option>
+
+                        <option value="Tops">
+                            Tops
+                        </option>
+
+                        <option value="Pants">
+                            Pants
+                        </option>
+
+                        <option value="Lab Coats">
+                            Lab Coats
+                        </option>
+
+                    </select>
+
+
+                    <select id="productColorFilter">
+
+                        <option value="">
+                            All Colors
+                        </option>
+
+                    </select>
+
+
+                    <select id="productSizeFilter">
+
+                        <option value="">
+                            All Sizes
+                        </option>
+
+                    </select>
+
+
+                    <select id="productStockFilter">
+
+                        <option value="">
+                            All Stock
+                        </option>
+
+                        <option value="available">
+                            Available
+                        </option>
+
+                        <option value="out">
+                            Sold Out
+                        </option>
+
+                    </select>
+
+
+                    <select id="productTagFilter">
+
+                        <option value="">
+                            All Tags
+                        </option>
+
+                        <option value="best">
+                            Best Sellers
+                        </option>
+
+                        <option value="new">
+                            Just Arrived
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <div class="panel">
+
+                    <div class="table-wrapper">
+
+                        <table>
+
+                            <thead>
+
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Category</th>
+                                    <th>Color</th>
+                                    <th>Price</th>
+                                    <th>Stock</th>
+                                    <th>Tags</th>
+                                    <th>Actions</th>
+                                </tr>
+
+                            </thead>
+
+                            <tbody id="productsTable"></tbody>
+
+                        </table>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- =================================================
+                 ORDERS
+            ================================================== -->
+
+            <section
+                id="orders"
+                class="page-section">
+
+                <div class="section-heading">
+
+                    <div>
+
+                        <p class="section-kicker">
+                            FULFILLMENT
+                        </p>
+
+                        <h3>
+                            Orders
+                        </h3>
+
+                        <p class="muted">
+                            Track and manage customer orders.
+                        </p>
+
+                    </div>
+
+                    <select id="orderStatusFilter">
+
+                        <option value="">
+                            All Orders
+                        </option>
+
+                        <option value="Pending">
+                            Pending
+                        </option>
+
+                        <option value="Confirmed">
+                            Confirmed
+                        </option>
+
+                        <option value="Processing">
+                            Processing
+                        </option>
+
+                        <option value="Shipped">
+                            Shipped
+                        </option>
+
+                        <option value="Delivered">
+                            Delivered
+                        </option>
+
+                        <option value="Cancelled">
+                            Cancelled
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <div class="toolbar order-toolbar">
+
+                    <input
+                        type="search"
+                        id="orderSearch"
+                        placeholder="Search by order, customer or phone...">
+
+                </div>
+
+
+                <div class="panel">
+
+                    <div class="table-wrapper">
+
+                        <table>
+
+                            <thead>
+
+                                <tr>
+                                    <th>Order</th>
+                                    <th>Customer</th>
+                                    <th>Phone</th>
+                                    <th>Total</th>
+                                    <th>Payment</th>
+                                    <th>Status</th>
+                                    <th>Date</th>
+                                    <th>Actions</th>
+                                </tr>
+
+                            </thead>
+
+                            <tbody id="ordersTable"></tbody>
+
+                        </table>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- =================================================
+                 CUSTOMERS
+            ================================================== -->
+
+            <section
+                id="customers"
+                class="page-section">
+
+                <div class="section-heading">
+
+                    <div>
+
+                        <p class="section-kicker">
+                            CUSTOMER BASE
+                        </p>
+
+                        <h3>
+                            Customers
+                        </h3>
+
+                        <p class="muted">
+                            Customer purchase history and activity.
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <!--
+                    IMPORTANT:
+                    The customer table is generated by admin.js.
+                    Do not put another table here.
+                -->
+
+                <div
+                    id="customersContainer"
+                    class="customers-container">
+                </div>
+
+            </section>
+
+
+            <!-- =================================================
+                 EMAIL SUBSCRIBERS
+            ================================================== -->
+
+            <section
+                id="subscribers"
+                class="page-section">
+
+                <div class="section-heading">
+
+                    <div>
+
+                        <p class="section-kicker">
+                            EMAIL LIST
+                        </p>
+
+                        <h3>
+                            Email Subscribers
+                        </h3>
+
+                        <p class="muted">
+                            Customers who subscribed for the 5% first-order discount.
+                        </p>
+
+                    </div>
+
+                    <button
+                        class="primary-btn"
+                        id="sendEmailBtn">
+                        Send to All
+                    </button>
+
+                </div>
+
+
+                <div class="panel">
+
+                    <div class="table-wrapper">
+
+                        <table>
+
+                            <thead>
+
+                                <tr>
+                                    <th>Email</th>
+                                    <th>Discount</th>
+                                    <th>Status</th>
+                                    <th>Subscribed</th>
+                                </tr>
+
+                            </thead>
+
+                            <tbody id="subscribersTable"></tbody>
+
+                        </table>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- =================================================
+                 CONTACT MESSAGES
+            ================================================== -->
+
+            <section
+                id="messages"
+                class="page-section">
+
+                <div class="section-heading">
+
+                    <div>
+
+                        <p class="section-kicker">
+                            INBOX
+                        </p>
+
+                        <h3>
+                            Contact Messages
+                        </h3>
+
+                        <p class="muted">
+                            Messages received through the website.
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="panel">
+
+                    <div class="table-wrapper">
+
+                        <table>
+
+                            <thead>
+
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Message</th>
+                                    <th>Date</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+
+                            </thead>
+
+                            <tbody id="messagesTable"></tbody>
+
+                        </table>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- =================================================
+                 COUPONS
+            ================================================== -->
+
+            <section
+                id="coupons"
+                class="page-section">
+
+                <div class="section-heading">
+
+                    <div>
+
+                        <p class="section-kicker">
+                            PROMOTIONS
+                        </p>
+
+                        <h3>
+                            Coupons
+                        </h3>
+
+                        <p class="muted">
+                            Create and manage discount codes.
+                        </p>
+
+                    </div>
+
+                    <button
+                        class="primary-btn"
+                        id="addCouponBtn">
+                        + Add Coupon
+                    </button>
+
+                </div>
+
+
+                <div class="panel">
+
+                    <div class="table-wrapper">
+
+                        <table>
+
+                            <thead>
+
+                                <tr>
+                                    <th>Code</th>
+                                    <th>Discount</th>
+                                    <th>Minimum Order</th>
+                                    <th>Usage</th>
+                                    <th>Validity</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+
+                            </thead>
+
+                            <tbody id="couponsTable"></tbody>
+
+                        </table>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- =================================================
+                 BEST SELLERS
+            ================================================== -->
+
+            <section
+                id="best-sellers"
+                class="page-section">
+
+                <div class="section-heading">
+
+                    <div>
+
+                        <p class="section-kicker">
+                            CUSTOMER FAVORITES
+                        </p>
+
+                        <h3>
+                            Best Sellers
+                        </h3>
+
+                        <p class="muted">
+                            Products selected as your store's best sellers.
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div
+                    id="bestSellersGrid"
+                    class="product-admin-grid">
+                </div>
+
+            </section>
+
+
+            <!-- =================================================
+                 JUST ARRIVED
+            ================================================== -->
+
+            <section
+                id="just-arrived"
+                class="page-section">
+
+                <div class="section-heading">
+
+                    <div>
+
+                        <p class="section-kicker">
+                            NEW COLLECTION
+                        </p>
+
+                        <h3>
+                            Just Arrived
+                        </h3>
+
+                        <p class="muted">
+                            Products recently added to the store.
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div
+                    id="justArrivedGrid"
+                    class="product-admin-grid">
+                </div>
+
+            </section>
+
+
+            <!-- =================================================
+                 SOLD OUT
+            ================================================== -->
+
+            <section
+                id="sold-out"
+                class="page-section">
+
+                <div class="section-heading">
+
+                    <div>
+
+                        <p class="section-kicker">
+                            INVENTORY
+                        </p>
+
+                        <h3>
+                            Sold Out
+                        </h3>
+
+                        <p class="muted">
+                            Products that currently have zero stock.
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div
+                    id="soldOutGrid"
+                    class="product-admin-grid">
+                </div>
+
+            </section>
+
+
+            <!-- =================================================
+                 ANALYTICS
+            ================================================== -->
+
+            <section
+                id="analytics"
+                class="page-section">
+
+                <div class="section-heading">
+
+                    <div>
+
+                        <p class="section-kicker">
+                            INSIGHTS
+                        </p>
+
+                        <h3>
+                            Sales & Analytics
+                        </h3>
+
+                        <p class="muted">
+                            Understand how Figure Scrub is performing.
+                        </p>
+
+                    </div>
+
+                    <select id="analyticsPeriod">
+
+                        <option value="day">
+                            Daily
+                        </option>
+
+                        <option value="week">
+                            Weekly
+                        </option>
+
+                        <option value="month">
+                            Monthly
+                        </option>
+
+                        <option value="year">
+                            Yearly
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <div class="stats-grid analytics-stats">
+
+                    <div class="stat-card">
+                        <span>Total Sales</span>
+                        <strong id="analyticsRevenue">
+                            0 EGP
+                        </strong>
+                    </div>
+
+                    <div class="stat-card">
+                        <span>Total Orders</span>
+                        <strong id="analyticsOrders">
+                            0
+                        </strong>
+                    </div>
+
+                    <div class="stat-card">
+                        <span>Average Order</span>
+                        <strong id="averageOrder">
+                            0 EGP
+                        </strong>
+                    </div>
+
+                    <div class="stat-card">
+                        <span>Sold Products</span>
+                        <strong id="soldProducts">
+                            0
+                        </strong>
+                    </div>
+
+                    <div class="stat-card">
+                        <span>Best Selling Product</span>
+                        <strong id="analyticsBestProduct">
+                            —
+                        </strong>
+                    </div>
+
+                    <div class="stat-card">
+                        <span>Best Selling Color</span>
+                        <strong id="analyticsBestColor">
+                            —
+                        </strong>
+                    </div>
+
+                    <div class="stat-card">
+                        <span>Best Selling Size</span>
+                        <strong id="analyticsBestSize">
+                            —
+                        </strong>
+                    </div>
+
+                    <div class="stat-card">
+                        <span>VIP Customers</span>
+                        <strong id="analyticsVip">
+                            0
+                        </strong>
+                    </div>
+
+                </div>
+
+
+                <div class="dashboard-grid">
+
+                    <div class="panel">
+
+                        <div class="panel-header">
+
+                            <div>
+
+                                <p class="section-kicker">
+                                    REVENUE
+                                </p>
+
+                                <h3>
+                                    Sales Performance
+                                </h3>
+
+                            </div>
+
+                        </div>
+
+                        <div
+                            class="sales-chart large-chart"
+                            id="analyticsChart">
+                        </div>
+
+                    </div>
+
+
+                    <div class="panel">
+
+                        <div class="panel-header">
+
+                            <div>
+
+                                <p class="section-kicker">
+                                    CUSTOMERS
+                                </p>
+
+                                <h3>
+                                    Most Active Customers
+                                </h3>
+
+                            </div>
+
+                        </div>
+
+                        <div id="activeCustomersList"></div>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- =================================================
+                 PAYMENT SETTINGS
+            ================================================== -->
+
+            <section
+                id="payments"
+                class="page-section">
+
+                <div class="section-heading">
+
+                    <div>
+
+                        <p class="section-kicker">
+                            PAYMENTS
+                        </p>
+
+                        <h3>
+                            Payment Settings
+                        </h3>
+
+                        <p class="muted">
+                            Update payment information used at checkout.
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="settings-grid">
+
+                    <div class="panel settings-card">
+
+                        <p class="section-kicker">
+                            VODAFONE CASH
+                        </p>
+
+                        <h3>
+                            Vodafone Cash
+                        </h3>
+
+                        <div class="form-group">
+
+                            <label>
+                                Vodafone Cash Number
+                            </label>
+
+                            <input
+                                id="vodafoneCash"
+                                type="text"
+                                placeholder="01XXXXXXXXX">
+
+                        </div>
+
+                        <button
+                            class="primary-btn"
+                            id="saveVodafoneBtn">
+                            Save
+                        </button>
+
+                    </div>
+
+
+                    <div class="panel settings-card">
+
+                        <p class="section-kicker">
+                            INSTAPAY
+                        </p>
+
+                        <h3>
+                            InstaPay
+                        </h3>
+
+                        <div class="form-group">
+
+                            <label>
+                                InstaPay Account
+                            </label>
+
+                            <input
+                                id="instapay"
+                                type="text"
+                                placeholder="InstaPay account / identifier">
+
+                        </div>
+
+                        <button
+                            class="primary-btn"
+                            id="saveInstapayBtn">
+                            Save
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- =================================================
+                 WEBSITE SETTINGS
+            ================================================== -->
+
+            <section
+                id="website"
+                class="page-section">
+
+                <div class="section-heading">
+
+                    <div>
+
+                        <p class="section-kicker">
+                            WEBSITE
+                        </p>
+
+                        <h3>
+                            Website Settings
+                        </h3>
+
+                        <p class="muted">
+                            Manage your store contact information and announcement bar.
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="panel settings-panel">
+
+                    <div class="form-grid">
+
+                        <div class="form-group">
+
+                            <label>
+                                Store Name
+                            </label>
+
+                            <input
+                                id="settingStoreName"
+                                type="text"
+                                value="Figure Scrub">
+
+                        </div>
+
+                        <div class="form-group">
+
+                            <label>
+                                Contact Email
+                            </label>
+
+                            <input
+                                id="settingEmail"
+                                type="email"
+                                placeholder="Email">
+
+                        </div>
+
+                        <div class="form-group">
+
+                            <label>
+                                WhatsApp
+                            </label>
+
+                            <input
+                                id="settingWhatsapp"
+                                type="text"
+                                placeholder="WhatsApp number">
+
+                        </div>
+
+                        <div class="form-group">
+
+                            <label>
+                                Instagram
+                            </label>
+
+                            <input
+                                id="settingInstagram"
+                                type="text"
+                                placeholder="Instagram link">
+
+                        </div>
+
+                        <div class="form-group">
+
+                            <label>
+                                Facebook
+                            </label>
+
+                            <input
+                                id="settingFacebook"
+                                type="text"
+                                placeholder="Facebook link">
+
+                        </div>
+
+                        <div class="form-group full">
+
+                            <label>
+                                Announcement Bar
+                            </label>
+
+                            <input
+                                id="settingAnnouncement"
+                                type="text"
+                                placeholder="Example: SUMMER20 — 20% OFF">
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="modal-actions">
+
+                        <button
+                            class="primary-btn"
+                            id="saveWebsiteSettings">
+                            Save Website Settings
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- =================================================
+                 ADMIN ACCOUNT
+            ================================================== -->
+
+            <section
+                id="account"
+                class="page-section">
+
+                <div class="section-heading">
+
+                    <div>
+
+                        <p class="section-kicker">
+                            SECURITY
+                        </p>
+
+                        <h3>
+                            Admin Account
+                        </h3>
+
+                        <p class="muted">
+                            Your administrator account is protected through Supabase Authentication.
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="settings-grid">
+
+                    <div class="panel settings-card">
+
+                        <p class="section-kicker">
+                            ACCOUNT
+                        </p>
+
+                        <h3 id="adminEmail">
+                            admin@figurescrub.com
+                        </h3>
+
+                        <p class="muted">
+                            Administrator
+                        </p>
+
+                    </div>
+
+
+                    <div class="panel settings-card">
+
+                        <p class="section-kicker">
+                            SECURITY
+                        </p>
+
+                        <h3>
+                            Supabase Authentication
+                        </h3>
+
+                        <p class="muted">
+                            Your password is stored securely by Supabase Auth.
+                            It is never stored inside the website code.
+                        </p>
+
+                        <button
+                            class="secondary-btn"
+                            id="accountLogoutBtn">
+                            Logout
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+        </main>
+
+    </div>
+
+
+    <!-- =========================================================
+         PRODUCT MODAL
+    ========================================================== -->
+
+    <div
+        class="modal-overlay"
+        id="productModal">
+
+        <div class="modal">
+
+            <div class="modal-header">
+
+                <div>
+
+                    <p class="section-kicker">
+                        CATALOG
+                    </p>
+
+                    <h3 id="productModalTitle">
+                        Add Product
+                    </h3>
+
+                </div>
+
+                <button
+                    class="close-btn"
+                    data-close-modal>
+                    ×
+                </button>
+
+            </div>
+
+
+            <form id="productForm">
+
+                <input
+                    type="hidden"
+                    id="productId">
+
+
+                <!-- PRODUCT IMAGE -->
+
+                <div class="upload-section">
+
+                    <div>
+
+                        <p class="upload-title">
+                            Product Image
+                        </p>
+
+                        <div
+                            class="image-preview"
+                            id="imagePreview">
+
+                            <span>
+                                Product Image
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                    <label class="upload-btn">
+
+                        Upload Product Image
+
+                        <input
+                            type="file"
+                            id="productImage"
+                            accept="image/*">
+
+                    </label>
+
+                </div>
+
+
+                <!-- SIZE CHART -->
+
+                <div class="upload-section size-chart-upload">
+
+                    <div>
+
+                        <p class="upload-title">
+                            Size Chart
+                        </p>
+
+                        <div
+                            class="image-preview size-chart-preview"
+                            id="sizeChartPreview">
+
+                            <span>
+                                Size Chart
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                    <label class="upload-btn">
+
+                        Upload Size Chart
+
+                        <input
+                            type="file"
+                            id="sizeChartImage"
+                            accept="image/*">
+
+                    </label>
+
+                </div>
+
+
+                <!-- FORM -->
+
+                <div class="form-grid">
+
+                    <div class="form-group full">
+
+                        <label>
+                            Product Name
+                        </label>
+
+                        <input
+                            id="productName"
+                            required
+                            placeholder="e.g. Figure Classic Scrub">
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label>
+                            Category
+                        </label>
+
+                        <select
+                            id="productCategory"
+                            required>
+
+                            <option value="">
+                                Select Category
+                            </option>
+
+                            <option value="Scrub Sets">
+                                Scrub Sets
+                            </option>
+
+                            <option value="Tops">
+                                Tops
+                            </option>
+
+                            <option value="Pants">
+                                Pants
+                            </option>
+
+                            <option value="Lab Coats">
+                                Lab Coats
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label>
+                            Subcategory
+                        </label>
+
+                        <input
+                            id="productSubcategory"
+                            placeholder="e.g. Classic">
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label>
+                            Color
+                        </label>
+
+                        <input
+                            id="productColor"
+                            placeholder="e.g. Forest Green">
+
+                        <small class="field-note">
+                            The color dot will be generated automatically.
+                        </small>
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label>
+                            Available Sizes
+                        </label>
+
+                        <input
+                            id="productSizes"
+                            placeholder="XS, S, M, L, XL">
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label>
+                            Current Price (EGP)
+                        </label>
+
+                        <input
+                            id="productPrice"
+                            type="number"
+                            min="0"
+                            required>
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label>
+                            Old Price (EGP)
+                        </label>
+
+                        <input
+                            id="productOldPrice"
+                            type="number"
+                            min="0"
+                            placeholder="Optional">
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label>
+                            Stock Quantity
+                        </label>
+
+                        <input
+                            id="productStock"
+                            type="number"
+                            min="0"
+                            required>
+
+                        <small class="field-note">
+                            This number is visible only to the admin.
+                        </small>
+
+                    </div>
+
+
+                    <div class="form-group full">
+
+                        <label>
+                            Description
+                        </label>
+
+                        <textarea
+                            id="productDescription"
+                            rows="4"
+                            placeholder="Product description..."></textarea>
+
+                    </div>
+
+                </div>
+
+
+                <!-- PRODUCT FLAGS -->
+
+                <div class="switches">
+
+                    <label class="switch-row">
+
+                        <span>
+
+                            <strong>
+                                Best Seller
+                            </strong>
+
+                            <small>
+                                Show this product as a best seller.
+                            </small>
+
+                        </span>
+
+                        <input
+                            type="checkbox"
+                            id="productBestSeller">
+
+                        <i></i>
+
+                    </label>
+
+
+                    <label class="switch-row">
+
+                        <span>
+
+                            <strong>
+                                Just Arrived
+                            </strong>
+
+                            <small>
+                                Show this product as newly arrived.
+                            </small>
+
+                        </span>
+
+                        <input
+                            type="checkbox"
+                            id="productJustArrived">
+
+                        <i></i>
+
+                    </label>
+
+
+                    <label class="switch-row">
+
+                        <span>
+
+                            <strong>
+                                Active
+                            </strong>
+
+                            <small>
+                                Make this product visible in the store.
+                            </small>
+
+                        </span>
+
+                        <input
+                            type="checkbox"
+                            id="productActive"
+                            checked>
+
+                        <i></i>
+
+                    </label>
+
+                </div>
+
+
+                <div class="modal-actions">
+
+                    <button
+                        type="button"
+                        class="secondary-btn"
+                        data-close-modal>
+                        Cancel
+                    </button>
+
+                    <button
+                        type="submit"
+                        class="primary-btn">
+                        Save Product
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================================================
+         ORDER MODAL
+    ========================================================== -->
+
+    <div
+        class="modal-overlay"
+        id="orderModal">
+
+        <div class="modal order-modal">
+
+            <div class="modal-header">
+
+                <div>
+
+                    <p class="section-kicker">
+                        ORDER DETAILS
+                    </p>
+
+                    <h3 id="orderModalTitle">
+                        Order
+                    </h3>
+
+                </div>
+
+                <button
+                    class="close-btn"
+                    data-close-modal>
+                    ×
+                </button>
+
+            </div>
+
+            <div id="orderDetails"></div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================================================
+         COUPON MODAL
+    ========================================================== -->
+
+    <div
+        class="modal-overlay"
+        id="couponModal">
+
+        <div class="modal small-modal">
+
+            <div class="modal-header">
+
+                <div>
+
+                    <p class="section-kicker">
+                        PROMOTION
+                    </p>
+
+                    <h3>
+                        Add Coupon
+                    </h3>
+
+                </div>
+
+                <button
+                    class="close-btn"
+                    data-close-modal>
+                    ×
+                </button>
+
+            </div>
+
+
+            <form id="couponForm">
+
+                <div class="form-group">
+
+                    <label>
+                        Coupon Code
+                    </label>
+
+                    <input
+                        id="couponCode"
+                        required
+                        placeholder="FIGURE20">
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>
+                        Discount Type
+                    </label>
+
+                    <select id="couponType">
+
+                        <option value="percentage">
+                            Percentage
+                        </option>
+
+                        <option value="fixed">
+                            Fixed Amount
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>
+                        Discount Value
+                    </label>
+
+                    <input
+                        id="couponValue"
+                        type="number"
+                        min="0"
+                        required>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>
+                        Minimum Order
+                    </label>
+
+                    <input
+                        id="couponMinimum"
+                        type="number"
+                        min="0"
+                        value="0">
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>
+                        Usage Limit
+                    </label>
+
+                    <input
+                        id="couponLimit"
+                        type="number"
+                        min="0"
+                        placeholder="0 = unlimited">
+
+                </div>
+
+
+                <div class="form-grid">
+
+                    <div class="form-group">
+
+                        <label>
+                            Start Date
+                        </label>
+
+                        <input
+                            id="couponStartsAt"
+                            type="datetime-local">
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label>
+                            Expiry Date
+                        </label>
+
+                        <input
+                            id="couponExpiresAt"
+                            type="datetime-local">
+
+                    </div>
+
+                </div>
+
+
+                <label class="checkbox-label">
+
+                    <input
+                        type="checkbox"
+                        id="couponActive"
+                        checked>
+
+                    Active
+
+                </label>
+
+
+                <div class="modal-actions">
+
+                    <button
+                        type="button"
+                        class="secondary-btn"
+                        data-close-modal>
+                        Cancel
+                    </button>
+
+                    <button
+                        type="submit"
+                        class="primary-btn">
+                        Save Coupon
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================================================
+         EMAIL MODAL
+    ========================================================== -->
+
+    <div
+        class="modal-overlay"
+        id="emailModal">
+
+        <div class="modal small-modal">
+
+            <div class="modal-header">
+
+                <div>
+
+                    <p class="section-kicker">
+                        EMAIL CAMPAIGN
+                    </p>
+
+                    <h3>
+                        Send Email
+                    </h3>
+
+                </div>
+
+                <button
+                    class="close-btn"
+                    data-close-modal>
+                    ×
+                </button>
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>
+                    Subject
+                </label>
+
+                <input
+                    id="emailSubject"
+                    placeholder="Your Figure Scrub update">
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>
+                    Message
+                </label>
+
+                <textarea
+                    id="emailMessage"
+                    rows="7"
+                    placeholder="Write your message..."></textarea>
+
+            </div>
+
+
+            <div class="email-warning">
+
+                <strong>
+                    Secure sending
+                </strong>
+
+                <p>
+                    Email delivery must be connected through a secure backend/email service.
+                    No secret API key will be stored in this dashboard.
+                </p>
+
+            </div>
+
+
+            <div class="modal-actions">
+
+                <button
+                    type="button"
+                    class="secondary-btn"
+                    data-close-modal>
+                    Cancel
+                </button>
+
+                <button
+                    type="button"
+                    class="primary-btn"
+                    id="confirmSendEmail">
+                    Send to All
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================================================
+         CONFIRM MODAL
+    ========================================================== -->
+
+    <div
+        class="modal-overlay"
+        id="confirmModal">
+
+        <div class="modal small-modal confirm-modal">
+
+            <div class="modal-header">
+
+                <div>
+
+                    <p class="section-kicker">
+                        CONFIRM ACTION
+                    </p>
+
+                    <h3 id="confirmTitle">
+                        Are you sure?
+                    </h3>
+
+                </div>
+
+                <button
+                    class="close-btn"
+                    data-close-modal>
+                    ×
+                </button>
+
+            </div>
+
+
+            <p
+                id="confirmMessage"
+                class="confirm-message">
+            </p>
+
+
+            <div class="modal-actions">
+
+                <button
+                    type="button"
+                    class="secondary-btn"
+                    data-close-modal>
+                    Cancel
+                </button>
+
+                <button
+                    type="button"
+                    class="danger-btn"
+                    id="confirmActionBtn">
+                    Confirm
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================================================
+         TOAST
+    ========================================================== -->
+
+    <div
+        id="toast"
+        class="toast">
+    </div>
+
+
+    <script src="admin.js"></script>
+
+</body>
+
+</html>

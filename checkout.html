@@ -1,0 +1,1539 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Checkout | Figure Scrub</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap"
+        rel="stylesheet"
+    >
+
+    <style>
+
+        :root {
+            --deep-green: #173d35;
+            --deep-green-2: #21483f;
+            --medical-green: #416d62;
+
+            --soft-green: #dfeae5;
+            --pale-green: #eef4f1;
+
+            --lavender: #9b7cab;
+            --soft-lavender: #e9e0ed;
+
+            --soft-pink: #d99aae;
+            --pale-pink: #f3e2e7;
+
+            --cream: #faf9f6;
+            --white: #ffffff;
+
+            --text: #20342f;
+            --muted: #71807b;
+            --light-text: #9aa6a2;
+
+            --border: #dfe5e2;
+            --border-dark: #cbd6d1;
+
+            --danger: #b55f6f;
+        }
+
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+
+        body {
+            font-family: "Inter", Arial, sans-serif;
+            background: var(--cream);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+
+        button,
+        input,
+        select,
+        textarea {
+            font-family: inherit;
+        }
+
+
+        button {
+            cursor: pointer;
+        }
+
+
+        a {
+            color: inherit;
+        }
+
+
+        /* =====================================================
+           HEADER
+        ===================================================== */
+
+        .checkout-header {
+            width: 100%;
+            padding: 24px 6%;
+            border-bottom: 1px solid var(--border);
+            background: rgba(250, 249, 246, 0.96);
+        }
+
+
+        .header-inner {
+            max-width: 1250px;
+            margin: auto;
+
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            gap: 20px;
+        }
+
+
+        .brand {
+            text-decoration: none;
+
+            font-family: "Cormorant Garamond", serif;
+
+            font-size: 38px;
+            font-weight: 700;
+
+            color: var(--deep-green);
+        }
+
+
+        .back-shop {
+            text-decoration: none;
+
+            color: var(--medical-green);
+
+            font-size: 14px;
+            font-weight: 700;
+
+            display: flex;
+            align-items: center;
+
+            gap: 8px;
+        }
+
+
+        /* =====================================================
+           PAGE
+        ===================================================== */
+
+        .checkout-page {
+            max-width: 1250px;
+
+            margin: auto;
+
+            padding: 55px 6% 90px;
+        }
+
+
+        .page-heading {
+            margin-bottom: 35px;
+        }
+
+
+        .eyebrow {
+            font-size: 11px;
+
+            letter-spacing: 0.22em;
+
+            color: var(--lavender);
+
+            font-weight: 700;
+
+            margin-bottom: 8px;
+        }
+
+
+        .page-heading h1 {
+            font-family: "Cormorant Garamond", serif;
+
+            font-size: clamp(42px, 5vw, 62px);
+
+            line-height: 1;
+
+            color: var(--deep-green);
+        }
+
+
+        .page-heading p {
+            margin-top: 12px;
+
+            color: var(--muted);
+
+            font-size: 14px;
+        }
+
+
+        /* =====================================================
+           NOTIFICATION
+        ===================================================== */
+
+        .checkout-notification {
+            display: none;
+
+            padding: 15px 18px;
+
+            margin-bottom: 25px;
+
+            border-radius: 13px;
+
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+
+        .checkout-notification.show {
+            display: block;
+        }
+
+
+        .checkout-notification.error {
+            background: var(--pale-pink);
+            color: var(--danger);
+
+            border: 1px solid #ecc7d0;
+        }
+
+
+        .checkout-notification.success {
+            background: var(--pale-green);
+            color: var(--deep-green);
+
+            border: 1px solid var(--soft-green);
+        }
+
+
+        /* =====================================================
+           GRID
+        ===================================================== */
+
+        .checkout-grid {
+            display: grid;
+
+            grid-template-columns:
+                minmax(0, 1.35fr)
+                minmax(350px, 0.65fr);
+
+            gap: 28px;
+
+            align-items: start;
+        }
+
+
+        /* =====================================================
+           PANELS
+        ===================================================== */
+
+        .checkout-panel {
+            background: var(--white);
+
+            border: 1px solid var(--border);
+
+            border-radius: 22px;
+
+            padding: 30px;
+
+            box-shadow:
+                0 16px 40px rgba(33, 72, 63, 0.06);
+        }
+
+
+        .panel-title {
+            font-family: "Cormorant Garamond", serif;
+
+            font-size: 31px;
+
+            color: var(--deep-green);
+
+            margin-bottom: 22px;
+        }
+
+
+        .section-divider {
+            height: 1px;
+
+            background: var(--border);
+
+            margin: 32px 0;
+        }
+
+
+        /* =====================================================
+           FORM
+        ===================================================== */
+
+        .form-grid {
+            display: grid;
+
+            grid-template-columns: 1fr 1fr;
+
+            gap: 19px;
+        }
+
+
+        .form-field {
+            display: flex;
+
+            flex-direction: column;
+
+            gap: 7px;
+        }
+
+
+        .form-field.full {
+            grid-column: 1 / -1;
+        }
+
+
+        .form-field label {
+            font-size: 12px;
+
+            font-weight: 700;
+
+            color: var(--deep-green);
+        }
+
+
+        .required {
+            color: var(--soft-pink);
+        }
+
+
+        .form-field input,
+        .form-field select,
+        .form-field textarea {
+            width: 100%;
+
+            padding: 13px 14px;
+
+            border: 1px solid var(--border-dark);
+
+            border-radius: 12px;
+
+            background: var(--cream);
+
+            color: var(--text);
+
+            outline: none;
+
+            transition: 0.2s ease;
+        }
+
+
+        .form-field textarea {
+            min-height: 105px;
+
+            resize: vertical;
+        }
+
+
+        .form-field input:focus,
+        .form-field select:focus,
+        .form-field textarea:focus {
+            border-color: var(--lavender);
+
+            box-shadow:
+                0 0 0 3px var(--soft-lavender);
+        }
+
+
+        /* =====================================================
+           PAYMENT
+        ===================================================== */
+
+        .payment-methods {
+            display: grid;
+
+            gap: 12px;
+        }
+
+
+        .payment-card {
+            border: 1px solid var(--border);
+
+            border-radius: 15px;
+
+            background: var(--cream);
+
+            transition: 0.2s ease;
+        }
+
+
+        .payment-card:has(input:checked) {
+            border-color: var(--lavender);
+
+            background: var(--soft-lavender);
+        }
+
+
+        .payment-label {
+            display: flex;
+
+            align-items: flex-start;
+
+            gap: 13px;
+
+            padding: 16px;
+
+            cursor: pointer;
+        }
+
+
+        .payment-label input {
+            margin-top: 4px;
+        }
+
+
+        .payment-title {
+            display: block;
+
+            font-weight: 700;
+
+            color: var(--deep-green);
+        }
+
+
+        .payment-description {
+            display: block;
+
+            margin-top: 3px;
+
+            font-size: 12px;
+
+            color: var(--muted);
+        }
+
+
+        .payment-info {
+            display: none;
+
+            margin: 0 16px 16px 42px;
+
+            padding: 15px;
+
+            border-radius: 12px;
+
+            background: var(--pale-green);
+
+            border: 1px solid var(--soft-green);
+
+            font-size: 13px;
+
+            color: var(--deep-green);
+        }
+
+
+        .payment-info.show {
+            display: block;
+        }
+
+
+        .payment-account {
+            margin-top: 5px;
+
+            font-size: 17px;
+
+            font-weight: 800;
+
+            letter-spacing: 0.02em;
+        }
+
+
+        .card-coming-soon {
+            margin-top: 10px;
+
+            font-size: 12px;
+
+            color: var(--muted);
+        }
+
+
+        /* =====================================================
+           CART
+        ===================================================== */
+
+        .cart-items {
+            display: grid;
+
+            gap: 0;
+        }
+
+
+        .cart-item {
+            display: grid;
+
+            grid-template-columns: 72px minmax(0, 1fr) auto;
+
+            gap: 13px;
+
+            padding: 16px 0;
+
+            border-bottom: 1px solid var(--border);
+        }
+
+
+        .cart-item:first-child {
+            padding-top: 0;
+        }
+
+
+        .cart-image {
+            width: 72px;
+
+            height: 84px;
+
+            object-fit: cover;
+
+            border-radius: 11px;
+
+            background: var(--soft-green);
+        }
+
+
+        .cart-product-name {
+            font-weight: 700;
+
+            font-size: 14px;
+
+            color: var(--deep-green);
+        }
+
+
+        .cart-meta {
+            margin-top: 4px;
+
+            font-size: 11px;
+
+            color: var(--muted);
+        }
+
+
+        .cart-price {
+            margin-top: 5px;
+
+            font-size: 12px;
+
+            color: var(--medical-green);
+        }
+
+
+        .quantity-control {
+            display: inline-flex;
+
+            align-items: center;
+
+            margin-top: 10px;
+
+            border: 1px solid var(--border-dark);
+
+            border-radius: 9px;
+
+            overflow: hidden;
+
+            background: var(--white);
+        }
+
+
+        .quantity-control button {
+            width: 30px;
+
+            height: 29px;
+
+            border: 0;
+
+            background: transparent;
+
+            color: var(--deep-green);
+
+            font-weight: 700;
+        }
+
+
+        .quantity-control button:hover {
+            background: var(--soft-green);
+        }
+
+
+        .quantity-value {
+            min-width: 30px;
+
+            text-align: center;
+
+            font-size: 12px;
+
+            font-weight: 700;
+        }
+
+
+        .cart-item-total {
+            font-weight: 800;
+
+            color: var(--deep-green);
+
+            font-size: 13px;
+
+            white-space: nowrap;
+        }
+
+
+        /* =====================================================
+           COUPON
+        ===================================================== */
+
+        .coupon-area {
+            display: flex;
+
+            gap: 9px;
+
+            margin-top: 22px;
+        }
+
+
+        .coupon-area input {
+            min-width: 0;
+
+            flex: 1;
+
+            border: 1px solid var(--border-dark);
+
+            border-radius: 11px;
+
+            background: var(--cream);
+
+            padding: 12px 13px;
+
+            outline: none;
+        }
+
+
+        .coupon-area input:focus {
+            border-color: var(--lavender);
+        }
+
+
+        .coupon-btn {
+            border: 0;
+
+            border-radius: 11px;
+
+            padding: 0 17px;
+
+            background: var(--soft-lavender);
+
+            color: var(--deep-green);
+
+            font-weight: 700;
+        }
+
+
+        .coupon-message {
+            min-height: 18px;
+
+            margin-top: 8px;
+
+            font-size: 12px;
+
+            color: var(--muted);
+        }
+
+
+        .coupon-message.success {
+            color: var(--medical-green);
+        }
+
+
+        .coupon-message.error {
+            color: var(--danger);
+        }
+
+
+        /* =====================================================
+           TOTALS
+        ===================================================== */
+
+        .totals {
+            display: grid;
+
+            gap: 11px;
+
+            margin-top: 18px;
+        }
+
+
+        .total-row {
+            display: flex;
+
+            justify-content: space-between;
+
+            gap: 15px;
+
+            font-size: 13px;
+
+            color: var(--muted);
+        }
+
+
+        .total-row strong {
+            color: var(--text);
+        }
+
+
+        .total-row.grand-total {
+            border-top: 1px solid var(--border);
+
+            padding-top: 16px;
+
+            margin-top: 5px;
+
+            font-size: 21px;
+
+            font-weight: 800;
+
+            color: var(--deep-green);
+        }
+
+
+        .total-row.grand-total strong {
+            color: var(--deep-green);
+        }
+
+
+        /* =====================================================
+           PLACE ORDER
+        ===================================================== */
+
+        .place-order-btn {
+            width: 100%;
+
+            border: 0;
+
+            border-radius: 14px;
+
+            padding: 16px;
+
+            margin-top: 22px;
+
+            background: var(--deep-green);
+
+            color: var(--white);
+
+            font-weight: 800;
+
+            font-size: 14px;
+
+            transition: 0.2s ease;
+        }
+
+
+        .place-order-btn:hover:not(:disabled) {
+            background: var(--deep-green-2);
+
+            transform: translateY(-1px);
+        }
+
+
+        .place-order-btn:disabled {
+            opacity: 0.55;
+
+            cursor: not-allowed;
+        }
+
+
+        .checkout-note {
+            margin-top: 12px;
+
+            text-align: center;
+
+            color: var(--light-text);
+
+            font-size: 11px;
+
+            line-height: 1.6;
+        }
+
+
+        /* =====================================================
+           EMPTY CART
+        ===================================================== */
+
+        .empty-cart {
+            padding: 35px 10px;
+
+            text-align: center;
+
+            color: var(--muted);
+        }
+
+
+        .empty-cart a {
+            display: inline-block;
+
+            margin-top: 10px;
+
+            color: var(--medical-green);
+
+            font-weight: 700;
+
+            text-decoration: none;
+        }
+
+
+        /* =====================================================
+           SUCCESS
+        ===================================================== */
+
+        .success-page {
+            display: none;
+
+            max-width: 760px;
+
+            margin: 70px auto;
+
+            text-align: center;
+
+            background: var(--white);
+
+            border: 1px solid var(--border);
+
+            border-radius: 25px;
+
+            padding: 50px 30px;
+
+            box-shadow:
+                0 18px 50px rgba(33, 72, 63, 0.08);
+        }
+
+
+        .success-page.show {
+            display: block;
+        }
+
+
+        .success-icon {
+            width: 78px;
+
+            height: 78px;
+
+            margin: 0 auto 20px;
+
+            border-radius: 50%;
+
+            display: grid;
+
+            place-items: center;
+
+            background: var(--soft-green);
+
+            color: var(--deep-green);
+
+            font-size: 36px;
+
+            font-weight: 800;
+        }
+
+
+        .success-page h1 {
+            font-family: "Cormorant Garamond", serif;
+
+            font-size: 55px;
+
+            color: var(--deep-green);
+        }
+
+
+        .success-order-number {
+            display: inline-block;
+
+            margin: 18px 0;
+
+            padding: 10px 17px;
+
+            border-radius: 11px;
+
+            background: var(--soft-lavender);
+
+            color: var(--deep-green);
+
+            font-weight: 800;
+        }
+
+
+        .success-email {
+            color: var(--muted);
+
+            font-size: 14px;
+
+            line-height: 1.7;
+        }
+
+
+        .continue-btn {
+            display: inline-block;
+
+            margin-top: 24px;
+
+            padding: 13px 22px;
+
+            border-radius: 12px;
+
+            background: var(--deep-green);
+
+            color: white;
+
+            text-decoration: none;
+
+            font-size: 13px;
+
+            font-weight: 700;
+        }
+
+
+        /* =====================================================
+           RESPONSIVE
+        ===================================================== */
+
+        @media (max-width: 900px) {
+
+            .checkout-grid {
+                grid-template-columns: 1fr;
+            }
+
+        }
+
+
+        @media (max-width: 600px) {
+
+            .checkout-header {
+                padding: 18px 5%;
+            }
+
+
+            .brand {
+                font-size: 31px;
+            }
+
+
+            .checkout-page {
+                padding: 38px 5% 60px;
+            }
+
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+
+            .form-field.full {
+                grid-column: auto;
+            }
+
+
+            .checkout-panel {
+                padding: 21px;
+            }
+
+
+            .cart-item {
+                grid-template-columns: 58px minmax(0, 1fr);
+            }
+
+
+            .cart-image {
+                width: 58px;
+                height: 70px;
+            }
+
+
+            .cart-item-total {
+                grid-column: 2;
+            }
+
+
+            .success-page h1 {
+                font-size: 45px;
+            }
+
+        }
+
+    </style>
+</head>
+
+
+<body>
+
+<header class="checkout-header">
+
+    <div class="header-inner">
+
+        <a href="index.html" class="brand">
+            Figure Scrub
+        </a>
+
+        <a href="index.html" class="back-shop">
+            ← Continue Shopping
+        </a>
+
+    </div>
+
+</header>
+
+
+<main class="checkout-page">
+
+    <div id="checkoutContent">
+
+        <div class="page-heading">
+
+            <p class="eyebrow">
+                SECURE CHECKOUT
+            </p>
+
+            <h1>
+                Complete Your Order
+            </h1>
+
+            <p>
+                Please enter your delivery information and choose your payment method.
+            </p>
+
+        </div>
+
+
+        <div
+            id="checkoutNotification"
+            class="checkout-notification"
+        ></div>
+
+
+        <div class="checkout-grid">
+
+
+            <!-- =================================================
+                 LEFT SIDE
+            ================================================== -->
+
+            <section class="checkout-panel">
+
+                <h2 class="panel-title">
+                    Delivery Information
+                </h2>
+
+
+                <form id="checkoutForm">
+
+                    <div class="form-grid">
+
+
+                        <div class="form-field">
+
+                            <label for="customerName">
+                                Full Name <span class="required">*</span>
+                            </label>
+
+                            <input
+                                type="text"
+                                id="customerName"
+                                name="customerName"
+                                autocomplete="name"
+                                required
+                                placeholder="Your full name"
+                            >
+
+                        </div>
+
+
+                        <div class="form-field">
+
+                            <label for="phone">
+                                Phone <span class="required">*</span>
+                            </label>
+
+                            <input
+                                type="tel"
+                                id="phone"
+                                name="phone"
+                                autocomplete="tel"
+                                required
+                                placeholder="01xxxxxxxxx"
+                            >
+
+                        </div>
+
+
+                        <div class="form-field">
+
+                            <label for="whatsapp">
+                                WhatsApp
+                            </label>
+
+                            <input
+                                type="tel"
+                                id="whatsapp"
+                                name="whatsapp"
+                                placeholder="01xxxxxxxxx"
+                            >
+
+                        </div>
+
+
+                        <div class="form-field">
+
+                            <label for="email">
+                                Email <span class="required">*</span>
+                            </label>
+
+                            <input
+                                type="email"
+                                id="email"
+                                name="email"
+                                autocomplete="email"
+                                required
+                                placeholder="example@email.com"
+                            >
+
+                        </div>
+
+
+                        <div class="form-field full">
+
+                            <label for="governorate">
+                                Governorate <span class="required">*</span>
+                            </label>
+
+                            <select
+                                id="governorate"
+                                name="governorate"
+                                required
+                            >
+
+                                <option value="">
+                                    Select your governorate
+                                </option>
+
+                            </select>
+
+                        </div>
+
+
+                        <div class="form-field full">
+
+                            <label for="address">
+                                Full Address <span class="required">*</span>
+                            </label>
+
+                            <textarea
+                                id="address"
+                                name="address"
+                                required
+                                placeholder="Street, building number, apartment, floor, landmark..."
+                            ></textarea>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="section-divider"></div>
+
+
+                    <!-- =================================================
+                         PAYMENT
+                    ================================================== -->
+
+                    <h2 class="panel-title">
+                        Payment Method
+                    </h2>
+
+
+                    <div class="payment-methods">
+
+
+                        <!-- COD -->
+
+                        <div class="payment-card">
+
+                            <label class="payment-label">
+
+                                <input
+                                    type="radio"
+                                    name="paymentMethod"
+                                    value="Cash on Delivery"
+                                    checked
+                                >
+
+                                <span>
+
+                                    <span class="payment-title">
+                                        Cash on Delivery
+                                    </span>
+
+                                    <span class="payment-description">
+                                        Pay when your order arrives.
+                                    </span>
+
+                                </span>
+
+                            </label>
+
+                        </div>
+
+
+                        <!-- CARD -->
+
+                        <div class="payment-card">
+
+                            <label class="payment-label">
+
+                                <input
+                                    type="radio"
+                                    name="paymentMethod"
+                                    value="Visa / Mastercard"
+                                >
+
+                                <span>
+
+                                    <span class="payment-title">
+                                        Visa / Mastercard
+                                    </span>
+
+                                    <span class="payment-description">
+                                        Online card payment.
+                                    </span>
+
+                                </span>
+
+                            </label>
+
+                            <div
+                                class="payment-info"
+                                id="cardInfo"
+                            >
+
+                                <strong>
+                                    Card Payment
+                                </strong>
+
+                                <div class="card-coming-soon">
+                                    Card payment gateway will be connected before
+                                    real card charging is enabled.
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- INSTAPAY -->
+
+                        <div class="payment-card">
+
+                            <label class="payment-label">
+
+                                <input
+                                    type="radio"
+                                    name="paymentMethod"
+                                    value="InstaPay"
+                                >
+
+                                <span>
+
+                                    <span class="payment-title">
+                                        InstaPay
+                                    </span>
+
+                                    <span class="payment-description">
+                                        Transfer the order total through InstaPay.
+                                    </span>
+
+                                </span>
+
+                            </label>
+
+                            <div
+                                class="payment-info"
+                                id="instapayInfo"
+                            >
+
+                                <strong>
+                                    InstaPay Account
+                                </strong>
+
+                                <div
+                                    class="payment-account"
+                                    id="instapayAccount"
+                                >
+                                    Loading...
+                                </div>
+
+                                <div>
+                                    Please transfer the final order total to this account.
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- VODAFONE -->
+
+                        <div class="payment-card">
+
+                            <label class="payment-label">
+
+                                <input
+                                    type="radio"
+                                    name="paymentMethod"
+                                    value="Vodafone Cash"
+                                >
+
+                                <span>
+
+                                    <span class="payment-title">
+                                        Vodafone Cash
+                                    </span>
+
+                                    <span class="payment-description">
+                                        Transfer the order total through Vodafone Cash.
+                                    </span>
+
+                                </span>
+
+                            </label>
+
+                            <div
+                                class="payment-info"
+                                id="vodafoneInfo"
+                            >
+
+                                <strong>
+                                    Vodafone Cash Number
+                                </strong>
+
+                                <div
+                                    class="payment-account"
+                                    id="vodafoneAccount"
+                                >
+                                    Loading...
+                                </div>
+
+                                <div>
+                                    Please transfer the final order total to this number.
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                    </div>
+
+
+                    <div class="section-divider"></div>
+
+
+                    <button
+                        type="submit"
+                        class="place-order-btn"
+                        id="placeOrderBtn"
+                    >
+                        Place Order
+                    </button>
+
+
+                    <p class="checkout-note">
+                        By placing your order, you confirm that the information
+                        provided is correct.
+                    </p>
+
+
+                </form>
+
+            </section>
+
+
+            <!-- =================================================
+                 RIGHT SIDE
+            ================================================== -->
+
+            <aside class="checkout-panel">
+
+                <h2 class="panel-title">
+                    Your Order
+                </h2>
+
+
+                <div
+                    id="cartItems"
+                    class="cart-items"
+                ></div>
+
+
+                <!-- COUPON -->
+
+                <div class="coupon-area">
+
+                    <input
+                        type="text"
+                        id="couponInput"
+                        placeholder="Coupon code"
+                    >
+
+                    <button
+                        type="button"
+                        class="coupon-btn"
+                        id="applyCouponBtn"
+                    >
+                        Apply
+                    </button>
+
+                </div>
+
+
+                <div
+                    id="couponMessage"
+                    class="coupon-message"
+                ></div>
+
+
+                <!-- TOTALS -->
+
+                <div class="totals">
+
+                    <div class="total-row">
+
+                        <span>
+                            Subtotal
+                        </span>
+
+                        <strong id="subtotal">
+                            0 EGP
+                        </strong>
+
+                    </div>
+
+
+                    <div class="total-row">
+
+                        <span>
+                            Discount
+                        </span>
+
+                        <strong id="discount">
+                            0 EGP
+                        </strong>
+
+                    </div>
+
+
+                    <div class="total-row">
+
+                        <span id="shippingLabel">
+                            Shipping
+                        </span>
+
+                        <strong id="shipping">
+                            0 EGP
+                        </strong>
+
+                    </div>
+
+
+                    <div class="total-row grand-total">
+
+                        <span>
+                            Total
+                        </span>
+
+                        <strong id="total">
+                            0 EGP
+                        </strong>
+
+                    </div>
+
+                </div>
+
+            </aside>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         SUCCESS PAGE
+    ====================================================== -->
+
+    <section
+        id="successPage"
+        class="success-page"
+    >
+
+        <div class="success-icon">
+            ✓
+        </div>
+
+        <p class="eyebrow">
+            ORDER CONFIRMED
+        </p>
+
+        <h1>
+            Thank You!
+        </h1>
+
+        <p>
+            Your Figure Scrub order has been placed successfully.
+        </p>
+
+
+        <div
+            id="successOrderNumber"
+            class="success-order-number"
+        >
+            Order #FS-000000
+        </div>
+
+
+        <p
+            id="successEmail"
+            class="success-email"
+        >
+            A confirmation email with your complete order details
+            has been sent to your email address.
+        </p>
+
+
+        <a
+            href="index.html"
+            class="continue-btn"
+        >
+            Continue Shopping
+        </a>
+
+    </section>
+
+</main>
+
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script src="checkout.js"></script>
+
+</body>
+
+</html>

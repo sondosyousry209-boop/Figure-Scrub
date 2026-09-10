@@ -1,0 +1,697 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Shop | Figure Scrub</title>
+
+    <link
+        rel="stylesheet"
+        href="style.css"
+    >
+
+</head>
+
+
+<body>
+
+
+    <!-- ===============================
+         NAVBAR
+    ================================= -->
+
+    <header class="navbar">
+
+        <a
+            href="index.html"
+            class="logo"
+        >
+            FIGURE SCRUB
+        </a>
+
+
+        <nav class="nav-links">
+
+            <a href="shop.html">
+                Shop
+            </a>
+
+            <a href="index.html#about">
+                About
+            </a>
+
+            <a href="index.html#contact">
+                Contact
+            </a>
+
+        </nav>
+
+
+        <div class="nav-actions">
+
+            <button
+                class="search-btn"
+                type="button"
+                aria-label="Search"
+            >
+                SEARCH
+            </button>
+
+
+            <button
+                class="cart-btn"
+                type="button"
+                aria-label="Shopping Cart"
+                data-cart-action="open"
+            >
+
+                CART
+
+                <span class="cart-count">
+                    0
+                </span>
+
+            </button>
+
+        </div>
+
+    </header>
+
+
+
+    <!-- ===============================
+         SHOP HEADER
+    ================================= -->
+
+    <main>
+
+        <section class="shop-header">
+
+            <div>
+
+                <p class="shop-label">
+                    FIGURE SCRUB
+                </p>
+
+                <h1>
+                    SHOP SCRUBS
+                </h1>
+
+                <p>
+                    Discover our collection of
+                    premium medical scrubs.
+                </p>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- ===============================
+             SHOP CONTENT
+        ================================= -->
+
+        <section class="shop-section">
+
+
+            <!-- ===============================
+                 SHOP TOOLBAR
+            ================================= -->
+
+            <div class="shop-toolbar">
+
+
+                <div class="shop-filters">
+
+
+                    <button
+                        class="filter-btn active"
+                        type="button"
+                        data-filter="all"
+                    >
+                        ALL
+                    </button>
+
+
+                    <button
+                        class="filter-btn"
+                        type="button"
+                        data-filter="new"
+                    >
+                        NEW ARRIVALS
+                    </button>
+
+
+                    <button
+                        class="filter-btn"
+                        type="button"
+                        data-filter="best"
+                    >
+                        BEST SELLERS
+                    </button>
+
+
+                    <button
+                        class="filter-btn"
+                        type="button"
+                        data-filter="available"
+                    >
+                        AVAILABLE
+                    </button>
+
+
+                    <button
+                        class="filter-btn"
+                        type="button"
+                        data-filter="out"
+                    >
+                        OUT OF STOCK
+                    </button>
+
+
+                </div>
+
+
+                <div class="product-count">
+
+                    <span id="productCount">
+                        0 PRODUCTS
+                    </span>
+
+                </div>
+
+
+            </div>
+
+
+
+            <!-- ===============================
+                 ADVANCED FILTERS
+            ================================= -->
+
+            <div class="advanced-filters">
+
+
+                <!-- SIZE -->
+
+                <select
+                    id="sizeFilter"
+                    aria-label="Filter by size"
+                >
+
+                    <option value="all">
+                        SIZE
+                    </option>
+
+                    <option value="XS">
+                        XS
+                    </option>
+
+                    <option value="S">
+                        S
+                    </option>
+
+                    <option value="M">
+                        M
+                    </option>
+
+                    <option value="L">
+                        L
+                    </option>
+
+                    <option value="XL">
+                        XL
+                    </option>
+
+                    <option value="XXL">
+                        XXL
+                    </option>
+
+                </select>
+
+
+
+                <!-- COLOR -->
+
+                <select
+                    id="colorFilter"
+                    aria-label="Filter by color"
+                >
+
+                    <option value="all">
+                        COLOR
+                    </option>
+
+                    <option value="Navy">
+                        NAVY
+                    </option>
+
+                    <option value="Black">
+                        BLACK
+                    </option>
+
+                    <option value="Beige">
+                        BEIGE
+                    </option>
+
+                    <option value="Grey">
+                        GREY
+                    </option>
+
+                    <option value="Green">
+                        GREEN
+                    </option>
+
+                </select>
+
+
+
+                <!-- PRICE -->
+
+                <select
+                    id="priceFilter"
+                    aria-label="Filter by price"
+                >
+
+                    <option value="all">
+                        PRICE
+                    </option>
+
+                    <option value="under1000">
+                        UNDER 1,000 EGP
+                    </option>
+
+                    <option value="1000-1500">
+                        1,000 - 1,500 EGP
+                    </option>
+
+                    <option value="over1500">
+                        OVER 1,500 EGP
+                    </option>
+
+                </select>
+
+
+            </div>
+
+
+
+            <!-- ===============================
+                 PRODUCTS
+            ================================= -->
+
+            <div
+                class="products-grid shop-products"
+                id="shopProducts"
+            >
+
+                <!--
+                    المنتجات هنا هتتحمل تلقائيًا
+                    من Supabase عن طريق script.js
+                -->
+
+            </div>
+
+
+
+            <!-- ===============================
+                 NO PRODUCTS
+            ================================= -->
+
+            <div
+                class="no-products"
+                id="noProducts"
+                hidden
+            >
+
+                <p>
+                    No products found.
+                </p>
+
+
+                <button
+                    type="button"
+                    id="resetFilters"
+                >
+                    CLEAR FILTERS
+                </button>
+
+            </div>
+
+
+        </section>
+
+    </main>
+
+
+
+    <!-- ===============================
+         PRODUCT MODAL
+    ================================= -->
+
+    <div
+        class="product-modal"
+        id="productModal"
+        hidden
+    >
+
+        <div class="modal-overlay"></div>
+
+
+        <div class="modal-content">
+
+
+            <!-- CLOSE -->
+
+            <button
+                class="modal-close"
+                type="button"
+                aria-label="Close product"
+            >
+                ×
+            </button>
+
+
+
+            <!-- PRODUCT IMAGE -->
+
+            <div class="modal-image">
+
+                <div class="product-placeholder">
+                    FIGURE SCRUB
+                </div>
+
+            </div>
+
+
+
+            <!-- PRODUCT DETAILS -->
+
+            <div class="modal-details">
+
+
+                <p class="modal-label">
+                    FIGURE SCRUB
+                </p>
+
+
+                <h2 id="modalProductName">
+                    FIGURE CLASSIC SCRUB
+                </h2>
+
+
+                <p id="modalProductColor">
+                    Navy
+                </p>
+
+
+
+                <!-- PRICE -->
+
+                <div class="modal-price">
+
+
+                    <span
+                        class="old-price"
+                        id="modalOldPrice"
+                    >
+                        1,500 EGP
+                    </span>
+
+
+                    <span
+                        class="current-price"
+                        id="modalPrice"
+                    >
+                        1,250 EGP
+                    </span>
+
+
+                </div>
+
+
+
+                <!-- SIZE -->
+
+                <div class="modal-section">
+
+
+                    <label>
+                        SELECT SIZE
+                    </label>
+
+
+                    <div class="size-options">
+
+                        <!--
+                            Sizes will be generated
+                            automatically by JavaScript.
+                        -->
+
+                    </div>
+
+
+                </div>
+
+
+
+                <!-- QUANTITY -->
+
+                <div class="modal-section">
+
+
+                    <label>
+                        QUANTITY
+                    </label>
+
+
+                    <div class="quantity-selector">
+
+
+                        <button
+                            type="button"
+                            id="decreaseQty"
+                            data-action="minus"
+                            aria-label="Decrease quantity"
+                        >
+                            −
+                        </button>
+
+
+                        <span id="quantityValue">
+                            1
+                        </span>
+
+
+                        <button
+                            type="button"
+                            id="increaseQty"
+                            data-action="plus"
+                            aria-label="Increase quantity"
+                        >
+                            +
+                        </button>
+
+
+                    </div>
+
+
+                </div>
+
+
+
+                <!-- ADD TO CART -->
+
+                <button
+                    class="modal-add-cart"
+                    type="button"
+                >
+                    ADD TO CART
+                </button>
+
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- ===============================
+         CART DRAWER
+    ================================= -->
+
+    <div
+        class="cart-drawer"
+        id="cartDrawer"
+        hidden
+    >
+
+
+        <!-- OVERLAY -->
+
+        <div class="cart-overlay"></div>
+
+
+
+        <!-- CART PANEL -->
+
+        <div class="cart-panel">
+
+
+            <!-- CART HEADER -->
+
+            <div class="cart-header">
+
+
+                <div>
+
+                    <p>
+                        YOUR BAG
+                    </p>
+
+                    <h2>
+                        Shopping Cart
+                    </h2>
+
+                </div>
+
+
+                <button
+                    class="cart-close"
+                    type="button"
+                    aria-label="Close cart"
+                >
+                    ×
+                </button>
+
+
+            </div>
+
+
+
+            <!-- CART ITEMS -->
+
+            <div
+                class="cart-items"
+                id="cartItems"
+            >
+
+                <div class="empty-cart">
+
+
+                    <p>
+                        Your cart is empty.
+                    </p>
+
+
+                    <button
+                        type="button"
+                        class="continue-shopping"
+                    >
+                        CONTINUE SHOPPING
+                    </button>
+
+
+                </div>
+
+            </div>
+
+
+
+            <!-- CART FOOTER -->
+
+            <div class="cart-footer">
+
+
+                <div class="cart-summary">
+
+
+                    <span>
+                        SUBTOTAL
+                    </span>
+
+
+                    <strong id="cartSubtotal">
+                        0 EGP
+                    </strong>
+
+
+                </div>
+
+
+
+                <p class="cart-note">
+                    Shipping and discounts calculated
+                    at checkout.
+                </p>
+
+
+
+                <button
+                    class="checkout-btn"
+                    type="button"
+                >
+                    CHECKOUT
+                </button>
+
+
+            </div>
+
+
+        </div>
+
+    </div>
+
+
+
+    <!-- ===============================
+         FOOTER
+    ================================= -->
+
+    <footer class="footer">
+
+
+        <div class="footer-logo">
+            FIGURE SCRUB
+        </div>
+
+
+        <p>
+            © 2026 Figure Scrub.
+            All rights reserved.
+        </p>
+
+
+    </footer>
+
+
+
+    <!-- ===============================
+         SUPABASE
+    ================================= -->
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+
+
+    <!-- ===============================
+         FIGURE SCRUB SCRIPT
+    ================================= -->
+
+    <script src="script.js"></script>
+
+
+</body>
+
+</html>

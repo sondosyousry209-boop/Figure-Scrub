@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Contact | Figure Scrub</title>
+
+    <link
+        rel="stylesheet"
+        href="style.css"
+    >
+
+    <link
+        rel="preconnect"
+        href="https://fonts.googleapis.com"
+    >
+
+    <link
+        rel="preconnect"
+        href="https://fonts.gstatic.com"
+        crossorigin
+    >
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Poppins:wght@300;400;500;600&display=swap"
+        rel="stylesheet"
+    >
+
+</head>
+
+
+<body>
+
+
+<!-- ==================== NAVBAR ==================== -->
+
+<header class="navbar">
+
+    <a
+        href="index.html"
+        class="logo"
+    >
+        FIGURE SCRUB
+    </a>
+
+
+    <nav class="nav-links">
+
+        <a href="shop.html">
+            Shop
+        </a>
+
+        <a href="index.html#about">
+            About
+        </a>
+
+        <a
+            href="contact.html"
+            class="active"
+        >
+            Contact
+        </a>
+
+    </nav>
+
+
+    <div class="nav-actions">
+
+        <button
+            class="search-btn"
+            type="button"
+            aria-label="Search"
+        >
+            Search
+        </button>
+
+
+        <button
+            class="cart-btn"
+            type="button"
+            aria-label="Shopping Cart"
+            data-cart-action="open"
+        >
+
+            Cart
+
+            <span class="cart-count">
+                0
+            </span>
+
+        </button>
+
+    </div>
+
+</header>
+
+
+
+<!-- ==================== CONTACT PAGE ==================== -->
+
+<main class="contact-page">
+
+
+    <!-- ==================== PAGE HERO ==================== -->
+
+    <section class="contact-hero">
+
+        <div class="contact-hero-inner">
+
+            <p class="contact-label">
+                GET IN TOUCH
+            </p>
+
+
+            <h1>
+                We're here<br>
+                for you.
+            </h1>
+
+
+            <p>
+
+                Have a question about your order,
+                sizing, or our scrubs?
+                We'd love to hear from you.
+
+            </p>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- ==================== CONTACT CONTENT ==================== -->
+
+    <section class="contact-content">
+
+
+        <!-- ==================== CONTACT INFO ==================== -->
+
+        <div class="contact-info">
+
+            <p class="contact-eyebrow">
+                CONTACT FIGURE SCRUB
+            </p>
+
+
+            <h2>
+                Let's talk.
+            </h2>
+
+
+            <p class="contact-intro">
+
+                Whether you need help choosing your size,
+                have a question about an order, or simply
+                want to know more about Figure Scrub,
+                our team is here to help.
+
+            </p>
+
+
+
+            <!-- EMAIL -->
+
+            <div class="contact-detail">
+
+                <span class="contact-detail-label">
+                    EMAIL
+                </span>
+
+
+                <a href="mailto:YOUR-EMAIL-HERE">
+                    YOUR-EMAIL-HERE
+                </a>
+
+            </div>
+
+
+
+            <!-- PHONE -->
+
+            <div class="contact-detail">
+
+                <span class="contact-detail-label">
+                    PHONE
+                </span>
+
+
+                <a href="tel:YOUR-PHONE-HERE">
+                    YOUR-PHONE-HERE
+                </a>
+
+            </div>
+
+
+
+            <!-- SOCIAL -->
+
+            <div class="contact-detail">
+
+                <span class="contact-detail-label">
+                    SOCIAL
+                </span>
+
+
+                <a
+                    href="#"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    INSTAGRAM →
+                </a>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- ==================== CONTACT FORM ==================== -->
+
+        <div class="contact-form-wrapper">
+
+            <div class="contact-form-heading">
+
+                <p>
+                    SEND US A MESSAGE
+                </p>
+
+
+                <h2>
+                    How can we help?
+                </h2>
+
+            </div>
+
+
+            <form
+                class="contact-form"
+                id="contactForm"
+            >
+
+
+                <!-- NAME -->
+
+                <div class="form-group">
+
+                    <label for="contactName">
+                        YOUR NAME
+                    </label>
+
+
+                    <input
+                        type="text"
+                        id="contactName"
+                        name="name"
+                        placeholder="Enter your name"
+                        autocomplete="name"
+                        required
+                    >
+
+                </div>
+
+
+
+                <!-- EMAIL -->
+
+                <div class="form-group">
+
+                    <label for="contactEmail">
+                        EMAIL ADDRESS
+                    </label>
+
+
+                    <input
+                        type="email"
+                        id="contactEmail"
+                        name="email"
+                        placeholder="Enter your email"
+                        autocomplete="email"
+                        required
+                    >
+
+                </div>
+
+
+
+                <!-- PHONE -->
+
+                <div class="form-group">
+
+                    <label for="contactPhone">
+                        PHONE NUMBER
+                    </label>
+
+
+                    <input
+                        type="tel"
+                        id="contactPhone"
+                        name="phone"
+                        placeholder="Enter your phone number"
+                        autocomplete="tel"
+                        required
+                    >
+
+                </div>
+
+
+
+                <!-- SUBJECT -->
+
+                <div class="form-group">
+
+                    <label for="contactSubject">
+                        SUBJECT
+                    </label>
+
+
+                    <select
+                        id="contactSubject"
+                        name="subject"
+                        required
+                    >
+
+                        <option
+                            value=""
+                            disabled
+                            selected
+                        >
+                            Select a subject
+                        </option>
+
+                        <option value="Order">
+                            Order
+                        </option>
+
+                        <option value="Sizing">
+                            Sizing
+                        </option>
+
+                        <option value="Product">
+                            Product Question
+                        </option>
+
+                        <option value="Shipping">
+                            Shipping
+                        </option>
+
+                        <option value="Other">
+                            Other
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+
+                <!-- MESSAGE -->
+
+                <div class="form-group">
+
+                    <label for="contactMessage">
+                        YOUR MESSAGE
+                    </label>
+
+
+                    <textarea
+                        id="contactMessage"
+                        name="message"
+                        rows="6"
+                        placeholder="Tell us how we can help..."
+                        required
+                    ></textarea>
+
+                </div>
+
+
+
+                <!-- ERROR MESSAGE -->
+
+                <div
+                    class="contact-error"
+                    id="contactError"
+                    hidden
+                ></div>
+
+
+
+                <!-- SUBMIT -->
+
+                <button
+                    type="submit"
+                    class="contact-submit"
+                    id="contactSubmit"
+                >
+                    SEND MESSAGE →
+                </button>
+
+
+            </form>
+
+
+
+            <!-- SUCCESS MESSAGE -->
+
+            <div
+                class="contact-success"
+                id="contactSuccess"
+                hidden
+            >
+
+                <div class="contact-success-icon">
+                    ✓
+                </div>
+
+
+                <div>
+
+                    <strong>
+                        Message received.
+                    </strong>
+
+
+                    <p>
+                        Thank you for reaching out.
+                        We'll get back to you as soon as possible.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+</main>
+
+
+
+<!-- ==================== FOOTER ==================== -->
+
+<footer class="footer">
+
+    <div class="footer-logo">
+        FIGURE SCRUB
+    </div>
+
+
+    <p>
+        © 2026 Figure Scrub.
+        All rights reserved.
+    </p>
+
+</footer>
+
+
+
+<!-- ==================== CART DRAWER ==================== -->
+
+<div
+    class="cart-drawer"
+    id="cartDrawer"
+    hidden
+>
+
+    <div class="cart-overlay"></div>
+
+
+    <div class="cart-panel">
+
+
+        <div class="cart-header">
+
+            <div>
+
+                <p>
+                    YOUR BAG
+                </p>
+
+
+                <h2>
+                    Shopping Cart
+                </h2>
+
+            </div>
+
+
+            <button
+                class="cart-close"
+                type="button"
+                aria-label="Close cart"
+            >
+                ×
+            </button>
+
+        </div>
+
+
+
+        <div
+            class="cart-items"
+            id="cartItems"
+        >
+
+            <div class="empty-cart">
+
+                <p>
+                    Your cart is empty.
+                </p>
+
+
+                <button
+                    type="button"
+                    class="continue-shopping"
+                >
+                    CONTINUE SHOPPING
+                </button>
+
+            </div>
+
+        </div>
+
+
+
+        <div class="cart-footer">
+
+            <div class="cart-summary">
+
+                <span>
+                    SUBTOTAL
+                </span>
+
+
+                <strong id="cartSubtotal">
+                    0 EGP
+                </strong>
+
+            </div>
+
+
+            <p class="cart-note">
+
+                Shipping and discounts calculated
+                at checkout.
+
+            </p>
+
+
+            <button
+                class="checkout-btn"
+                type="button"
+            >
+                CHECKOUT
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+
+<!-- ==================== SUPABASE ==================== -->
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+
+
+<!-- ==================== MAIN SCRIPT ==================== -->
+
+<script src="script.js"></script>
+
+
+
+<!-- ==================== CONTACT SCRIPT ==================== -->
+
+<script>
+
+document.addEventListener("DOMContentLoaded", () => {
+
+    const contactForm =
+        document.getElementById("contactForm");
+
+    const contactSuccess =
+        document.getElementById("contactSuccess");
+
+    const contactError =
+        document.getElementById("contactError");
+
+    const contactSubmit =
+        document.getElementById("contactSubmit");
+
+
+    if (!contactForm) {
+        return;
+    }
+
+
+    contactForm.addEventListener(
+        "submit",
+        async (event) => {
+
+            event.preventDefault();
+
+
+            /* =========================
+               GET FORM VALUES
+            ========================= */
+
+            const name =
+                document
+                    .getElementById("contactName")
+                    .value
+                    .trim();
+
+
+            const email =
+                document
+                    .getElementById("contactEmail")
+                    .value
+                    .trim();
+
+
+            const phone =
+                document
+                    .getElementById("contactPhone")
+                    .value
+                    .trim();
+
+
+            const subject =
+                document
+                    .getElementById("contactSubject")
+                    .value;
+
+
+            const message =
+                document
+                    .getElementById("contactMessage")
+                    .value
+                    .trim();
+
+
+
+            /* =========================
+               VALIDATION
+            ========================= */
+
+            if (
+                !name ||
+                !email ||
+                !phone ||
+                !subject ||
+                !message
+            ) {
+
+                contactError.hidden = false;
+
+                contactError.textContent =
+                    "Please fill in all fields.";
+
+                return;
+            }
+
+
+
+            /* =========================
+               CLEAR ERROR
+            ========================= */
+
+            contactError.hidden = true;
+
+            contactError.textContent = "";
+
+
+
+            /* =========================
+               LOADING
+            ========================= */
+
+            contactSubmit.disabled = true;
+
+            contactSubmit.textContent =
+                "SENDING...";
+
+
+
+            try {
+
+
+                /* =========================
+                   CHECK SUPABASE
+                ========================= */
+
+                if (!supabaseClient) {
+
+                    throw new Error(
+                        "Supabase client is not available."
+                    );
+
+                }
+
+
+
+                /* =========================
+                   INSERT MESSAGE
+                ========================= */
+
+                const { error } =
+                    await supabaseClient
+                        .from("contact_messages")
+                        .insert([
+                            {
+                                name: name,
+                                email: email,
+                                phone: phone,
+                                subject: subject,
+                                message: message
+                            }
+                        ]);
+
+
+
+                /* =========================
+                   CHECK ERROR
+                ========================= */
+
+                if (error) {
+
+                    console.error(
+                        "Supabase error:",
+                        error
+                    );
+
+                    throw error;
+
+                }
+
+
+
+                /* =========================
+                   SUCCESS
+                ========================= */
+
+                contactForm.hidden = true;
+
+                contactSuccess.hidden = false;
+
+                contactSuccess.classList.add("show");
+
+
+
+                /* =========================
+                   RESET
+                ========================= */
+
+                contactForm.reset();
+
+
+            } catch (error) {
+
+
+                console.error(
+                    "Contact form error:",
+                    error
+                );
+
+
+                /* =========================
+                   RESTORE BUTTON
+                ========================= */
+
+                contactSubmit.disabled = false;
+
+                contactSubmit.textContent =
+                    "SEND MESSAGE →";
+
+
+
+                /* =========================
+                   SHOW REAL ERROR
+                ========================= */
+
+                contactError.hidden = false;
+
+                contactError.textContent =
+                    error?.message ||
+                    error?.details ||
+                    error?.hint ||
+                    "Something went wrong. Please try again.";
+
+            }
+
+        }
+    );
+
+});
+
+</script>
+
+
+</body>
+
+</html>

@@ -1,4 +1,3 @@
-
 /* =========================================================
    FIGURE SCRUB
    CHECKOUT
@@ -28,9 +27,21 @@ const supabaseClient =
    CONSTANTS
 ========================================================= */
 
-const CART_KEY = "figureScrubCart";
+const CART_KEY =
+    "figureScrubCart";
 
-const EMAIL_SUBSCRIBER_DISCOUNT = 5;
+const EMAIL_SUBSCRIBER_DISCOUNT =
+    5;
+
+/*
+   Payment screenshot WhatsApp number
+   01021996424
+   International format:
+   201021996424
+*/
+
+const PAYMENT_WHATSAPP =
+    "201021996424";
 
 let cart = [];
 
@@ -45,11 +56,14 @@ let paymentSettings = {
 
 let submittingOrder = false;
 
-let subscriberEmailChecked = false;
+let subscriberEmailChecked =
+    false;
 
-let isEmailSubscriber = false;
+let isEmailSubscriber =
+    false;
 
-let lastCheckedSubscriberEmail = "";
+let lastCheckedSubscriberEmail =
+    "";
 
 
 /* =========================================================
@@ -57,11 +71,13 @@ let lastCheckedSubscriberEmail = "";
 ========================================================= */
 
 function $(id) {
+
     return document.getElementById(id);
 }
 
 
 function escapeHtml(value) {
+
     return String(value ?? "")
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
@@ -72,6 +88,7 @@ function escapeHtml(value) {
 
 
 function money(value) {
+
     return `${Number(value || 0).toFixed(2)} EGP`;
 }
 
@@ -85,10 +102,14 @@ function loadCart() {
     try {
 
         const stored =
-            localStorage.getItem(CART_KEY);
+            localStorage.getItem(
+                CART_KEY
+            );
 
         if (!stored) {
+
             cart = [];
+
             return;
         }
 
@@ -157,7 +178,9 @@ function getImage(item) {
 function getQuantity(item) {
 
     const quantity =
-        Number(item?.quantity ?? 1);
+        Number(
+            item?.quantity ?? 1
+        );
 
     return quantity > 0
         ? quantity
@@ -178,19 +201,22 @@ function getSubtotal() {
 
     return cart.reduce(
         (total, item) =>
-            total + getItemSubtotal(item),
+            total +
+            getItemSubtotal(item),
         0
     );
 }
 
 
 /* =========================================================
-   GOVERNORATES
+   GOVERNORATES + SHIPPING
 ========================================================= */
 
 const governorates = [
+
     "Cairo",
     "Giza",
+    "Cairo & Giza Outskirts",
     "Alexandria",
     "Qalyubia",
     "Dakahlia",
@@ -216,52 +242,203 @@ const governorates = [
     "Red Sea",
     "New Valley",
     "Matrouh"
+
 ];
+
+/* =========================================================
+   SHIPPING RATES
+========================================================= */
+
+const shippingData = {
+
+    "Assiut": {
+        fee: 112,
+        days: 3
+    },
+
+    "Cairo": {
+        fee: 107,
+        days: 2
+    },
+
+    "Giza": {
+        fee: 107,
+        days: 2
+    },
+  "Cairo & Giza Outskirts": {
+        fee: 129,
+        days: 2
+    },
+
+    "Dakahlia": {
+        fee: 146,
+        days: 3
+    },
+
+    "Beheira": {
+        fee: 146,
+        days: 3
+    },
+
+    "Minya": {
+        fee: 96,
+        days: 3
+    },
+
+    "Qalyubia": {
+        fee: 118,
+        days: 3
+    },
+
+    "Alexandria": {
+        fee: 118,
+        days: 3
+    },
+
+    "Gharbia": {
+        fee: 146,
+        days: 3
+    },
+
+    "Sohag": {
+        fee: 96,
+        days: 3
+    },
+
+    "Monufia": {
+        fee: 146,
+        days: 3
+    },
+
+    "Kafr El Sheikh": {
+        fee: 146,
+        days: 3
+    },
+
+    "Fayoum": {
+        fee: 96,
+        days: 3
+    },
+
+    "Qena": {
+        fee: 107,
+        days: 3
+    },
+
+    "Beni Suef": {
+        fee: 96,
+        days: 3
+    },
+
+    "Aswan": {
+        fee: 107,
+        days: 3
+    },
+
+    "Damietta": {
+        fee: 146,
+        days: 3
+    },
+
+    "Ismailia": {
+        fee: 146,
+        days: 3
+    },
+
+    "Luxor": {
+        fee: 107,
+        days: 3
+    },
+
+    "Port Said": {
+        fee: 146,
+        days: 3
+    },
+
+    "Suez": {
+        fee: 146,
+        days: 3
+    },
+
+    "Matrouh": {
+        fee: 224,
+        days: 7
+    },
+
+    "North Sinai": {
+        fee: 224,
+        days: 7
+    },
+
+    "Red Sea": {
+        fee: 224,
+        days: 7
+    },
+
+    "New Valley": {
+        fee: 224,
+        days: 7
+    },
+
+    "South Sinai": {
+        fee: 224,
+        days: 7
+    },
+
+    "Sharqia": {
+        fee: 146,
+        days: 3
+    }
+
+};
 
 
 /* =========================================================
-   SHIPPING
+   LOAD SHIPPING RATES
 ========================================================= */
 
 async function loadShippingRates() {
 
-    try {
+    /*
+       Use the local shipping data above.
+       No database changes are required.
+    */
 
-        const {
-            data,
-            error
-        } = await supabaseClient
-            .from("shipping_rates")
-            .select("*")
-            .eq("is_active", true)
-            .order("governorate");
+    shippingRates =
+        governorates.map(
+            governorate => ({
 
-        if (error) {
+                governorate:
 
-            console.error(
-                "Shipping rates error:",
-                error
-            );
+                    governorate,
 
-            shippingRates = [];
+                fee:
 
-            return;
-        }
+                    shippingData[
+                        governorate
+                    ]?.fee || 0,
 
-        shippingRates =
-            data || [];
+                delivery_days:
 
-        renderGovernorates();
+                    shippingData[
+                        governorate
+                    ]?.days || 0,
 
-    } catch (error) {
+                is_active:
 
-        console.error(
-            "Loading shipping rates failed:",
-            error
+                    true
+
+            })
         );
-    }
+
+
+    renderGovernorates();
 }
 
+
+/* =========================================================
+   RENDER GOVERNORATES
+========================================================= */
 
 function renderGovernorates() {
 
@@ -269,6 +446,7 @@ function renderGovernorates() {
         $("governorate");
 
     if (!select) {
+
         return;
     }
 
@@ -281,30 +459,48 @@ function renderGovernorates() {
         </option>
     `;
 
-    shippingRates.forEach(rate => {
+    shippingRates.forEach(
+        rate => {
 
-        const option =
-            document.createElement("option");
+            const option =
+                document.createElement(
+                    "option"
+                );
 
-        option.value =
-            rate.governorate;
+            option.value =
+                rate.governorate;
 
-        option.textContent =
-            `${rate.governorate} — ${money(rate.fee)}`;
+            option.textContent =
+                `${rate.governorate} — ${money(rate.fee)}`;
 
-        select.appendChild(option);
-    });
+            select.appendChild(
+                option
+            );
+
+        }
+    );
 
     if (currentValue) {
+
         select.value =
             currentValue;
+
     }
+
+    updateShippingDisplay();
 }
 
 
-function getShippingFee(governorate) {
+/* =========================================================
+   GET SHIPPING FEE
+========================================================= */
+
+function getShippingFee(
+    governorate
+) {
 
     if (!governorate) {
+
         return 0;
     }
 
@@ -320,29 +516,130 @@ function getShippingFee(governorate) {
         );
 
     return rate
-        ? Number(rate.fee || 0)
+        ? Number(
+            rate.fee || 0
+        )
         : 0;
 }
 
 
 /* =========================================================
+   GET DELIVERY DAYS
+========================================================= */
+
+function getDeliveryDays(
+    governorate
+) {
+
+    if (!governorate) {
+
+        return 0;
+    }
+
+    const rate =
+        shippingRates.find(
+            item =>
+                String(
+                    item.governorate
+                ).toLowerCase() ===
+                String(
+                    governorate
+                ).toLowerCase()
+        );
+
+    return rate
+        ? Number(
+            rate.delivery_days || 0
+        )
+        : 0;
+}
+
+
+/* =========================================================
+   UPDATE SHIPPING DISPLAY
+========================================================= */
+
+function updateShippingDisplay() {
+
+    const governorate =
+        $("governorate")?.value || "";
+
+    const shipping =
+        getShippingFee(
+            governorate
+        );
+
+    const days =
+        getDeliveryDays(
+            governorate
+        );
+
+    const shippingElement =
+        $("shipping");
+
+    const deliveryElement =
+        $("deliveryEstimate");
+
+
+    /* Shipping price */
+
+    if (shippingElement) {
+
+        shippingElement.textContent =
+            money(shipping);
+    }
+
+
+    /* Delivery time */
+
+    if (deliveryElement) {
+
+        if (!governorate) {
+
+            deliveryElement.textContent =
+                "Select governorate";
+
+        } else if (days > 0) {
+
+            deliveryElement.textContent =
+                `${days} days`;
+
+        } else {
+
+            deliveryElement.textContent =
+                "Not available";
+        }
+    }
+}
+
+/* =========================================================
    PAYMENT SETTINGS
 ========================================================= */
 
-function normalizeSettingValue(value) {
+function normalizeSettingValue(
+    value
+) {
 
     if (
         value === null ||
         value === undefined
     ) {
+
         return "";
     }
 
-    if (typeof value === "string") {
+    if (
+        typeof value ===
+        "string"
+    ) {
+
         return value;
     }
 
-    if (typeof value === "object") {
+    if (
+        typeof value ===
+        "object"
+    ) {
 
         return (
             value.value ??
@@ -364,18 +661,19 @@ async function loadPaymentSettings() {
         const {
             data,
             error
-        } = await supabaseClient
-            .from("store-settings")
-            .select(
-                "setting_key,setting_value"
-            )
-            .in(
-                "setting_key",
-                [
-                    "instapay",
-                    "vodafone_cash"
-                ]
-            );
+        } =
+            await supabaseClient
+                .from("store-settings")
+                .select(
+                    "setting_key,setting_value"
+                )
+                .in(
+                    "setting_key",
+                    [
+                        "instapay",
+                        "vodafone_cash"
+                    ]
+                );
 
         if (error) {
 
@@ -387,7 +685,9 @@ async function loadPaymentSettings() {
             return;
         }
 
-        (data || []).forEach(
+        (
+            data || []
+        ).forEach(
             setting => {
 
                 const value =
@@ -399,6 +699,7 @@ async function loadPaymentSettings() {
                     setting.setting_key ===
                     "instapay"
                 ) {
+
                     paymentSettings.instapay =
                         value;
                 }
@@ -407,6 +708,7 @@ async function loadPaymentSettings() {
                     setting.setting_key ===
                     "vodafone_cash"
                 ) {
+
                     paymentSettings.vodafone_cash =
                         value;
                 }
@@ -450,6 +752,61 @@ function updatePaymentUI() {
 
 
 /* =========================================================
+   PAYMENT WHATSAPP
+========================================================= */
+
+/*
+   This function DOES NOT open automatically.
+
+   It is called only when the customer clicks
+   the WhatsApp payment button on the success page.
+*/
+
+function openPaymentWhatsApp(
+    order
+) {
+
+    const paymentMethod =
+        order?.payment_method ||
+        "";
+
+    const orderNumber =
+        order?.order_number ||
+        "";
+
+    const total =
+        money(
+            order?.total
+        );
+
+    const message =
+        `Hello Figure Scrub,
+
+I have placed an order and selected ${paymentMethod}.
+
+Order Number: ${orderNumber}
+Payment Method: ${paymentMethod}
+Total: ${total}
+
+I am sending the payment screenshot here for verification.`;
+
+    const url =
+        `https://wa.me/${PAYMENT_WHATSAPP}?text=${encodeURIComponent(message)}`;
+
+    /*
+       Open WhatsApp only after the customer
+       clicks the button.
+    */
+
+    window.open(
+        url,
+        "_blank",
+        "noopener,noreferrer"
+    );
+}
+
+
+/* =========================================================
    PAYMENT UI
 ========================================================= */
 
@@ -482,34 +839,42 @@ function setupPaymentUI() {
                 : "";
 
         if (cardInfo) {
+
             cardInfo.classList.toggle(
                 "show",
-                value === "Visa / Mastercard"
+                value ===
+                    "Visa / Mastercard"
             );
         }
 
         if (instaInfo) {
+
             instaInfo.classList.toggle(
                 "show",
-                value === "InstaPay"
+                value ===
+                    "InstaPay"
             );
         }
 
         if (vodafoneInfo) {
+
             vodafoneInfo.classList.toggle(
                 "show",
-                value === "Vodafone Cash"
+                value ===
+                    "Vodafone Cash"
             );
         }
     }
 
-    paymentInputs.forEach(input => {
+    paymentInputs.forEach(
+        input => {
 
-        input.addEventListener(
-            "change",
-            update
-        );
-    });
+            input.addEventListener(
+                "change",
+                update
+            );
+        }
+    );
 
     update();
 }
@@ -525,7 +890,9 @@ function renderCart() {
         $("cartItems");
 
     if (!container) {
+
         updateTotals();
+
         return;
     }
 
@@ -533,11 +900,15 @@ function renderCart() {
 
         container.innerHTML = `
             <div class="empty-cart">
-                <p>Your cart is empty.</p>
+
+                <p>
+                    Your cart is empty.
+                </p>
 
                 <a href="index.html">
                     Continue Shopping
                 </a>
+
             </div>
         `;
 
@@ -548,7 +919,10 @@ function renderCart() {
 
     container.innerHTML =
         cart.map(
-            (item, index) => {
+            (
+                item,
+                index
+            ) => {
 
                 const image =
                     getImage(item);
@@ -565,10 +939,12 @@ function renderCart() {
                     getQuantity(item);
 
                 const size =
-                    item?.size || "";
+                    item?.size ||
+                    "";
 
                 const color =
-                    item?.color || "";
+                    item?.color ||
+                    "";
 
                 return `
                     <div class="cart-item">
@@ -597,6 +973,7 @@ function renderCart() {
                                 size || color
                                     ? `
                                         <div class="cart-meta">
+
                                             ${
                                                 size
                                                     ? `Size: ${escapeHtml(size)}`
@@ -604,7 +981,8 @@ function renderCart() {
                                             }
 
                                             ${
-                                                size && color
+                                                size &&
+                                                color
                                                     ? " • "
                                                     : ""
                                             }
@@ -614,6 +992,7 @@ function renderCart() {
                                                     ? `Color: ${escapeHtml(color)}`
                                                     : ""
                                             }
+
                                         </div>
                                     `
                                     : ""
@@ -662,14 +1041,20 @@ function renderCart() {
 }
 
 
-function changeQuantity(index, amount) {
+function changeQuantity(
+    index,
+    amount
+) {
 
     if (!cart[index]) {
+
         return;
     }
 
     const current =
-        getQuantity(cart[index]);
+        getQuantity(
+            cart[index]
+        );
 
     const next =
         current + amount;
@@ -700,6 +1085,7 @@ function changeQuantity(index, amount) {
 function getCouponPercent() {
 
     if (!appliedCoupon) {
+
         return 0;
     }
 
@@ -724,12 +1110,15 @@ function getCouponDiscountAmount() {
         !appliedCoupon ||
         percent <= 0
     ) {
+
         return 0;
     }
 
     return Math.min(
         subtotal,
-        subtotal * percent / 100
+        subtotal *
+            percent /
+            100
     );
 }
 
@@ -743,6 +1132,7 @@ async function applyCoupon() {
         $("couponMessage");
 
     if (!input) {
+
         return;
     }
 
@@ -761,6 +1151,7 @@ async function applyCoupon() {
         );
 
         if (message) {
+
             message.textContent =
                 "Please enter a coupon code.";
 
@@ -776,12 +1167,19 @@ async function applyCoupon() {
         const {
             data,
             error
-        } = await supabaseClient
-            .from("coupons")
-            .select("*")
-            .ilike("code", code)
-            .eq("is_active", true)
-            .maybeSingle();
+        } =
+            await supabaseClient
+                .from("coupons")
+                .select("*")
+                .ilike(
+                    "code",
+                    code
+                )
+                .eq(
+                    "is_active",
+                    true
+                )
+                .maybeSingle();
 
         if (error) {
 
@@ -791,6 +1189,7 @@ async function applyCoupon() {
             );
 
             if (message) {
+
                 message.textContent =
                     "Unable to verify the coupon.";
 
@@ -803,11 +1202,13 @@ async function applyCoupon() {
 
         if (!data) {
 
-            appliedCoupon = null;
+            appliedCoupon =
+                null;
 
             updateTotals();
 
             if (message) {
+
                 message.textContent =
                     "This coupon is not valid.";
 
@@ -833,11 +1234,13 @@ async function applyCoupon() {
             usedCount >= maxUses
         ) {
 
-            appliedCoupon = null;
+            appliedCoupon =
+                null;
 
             updateTotals();
 
             if (message) {
+
                 message.textContent =
                     "This coupon has reached its usage limit.";
 
@@ -887,6 +1290,7 @@ function getCheckoutEmail() {
         $("email");
 
     if (!emailInput) {
+
         return "";
     }
 
@@ -898,10 +1302,14 @@ function getCheckoutEmail() {
 }
 
 
-async function checkSubscriberEmail(email) {
+async function checkSubscriberEmail(
+    email
+) {
 
     const normalizedEmail =
-        String(email || "")
+        String(
+            email || ""
+        )
             .trim()
             .toLowerCase();
 
@@ -910,11 +1318,14 @@ async function checkSubscriberEmail(email) {
         !normalizedEmail.includes("@")
     ) {
 
-        subscriberEmailChecked = false;
+        subscriberEmailChecked =
+            false;
 
-        isEmailSubscriber = false;
+        isEmailSubscriber =
+            false;
 
-        lastCheckedSubscriberEmail = "";
+        lastCheckedSubscriberEmail =
+            "";
 
         updateTotals();
 
@@ -926,27 +1337,33 @@ async function checkSubscriberEmail(email) {
         lastCheckedSubscriberEmail ===
             normalizedEmail
     ) {
+
         return isEmailSubscriber;
     }
 
-    subscriberEmailChecked = false;
+    subscriberEmailChecked =
+        false;
 
-    isEmailSubscriber = false;
+    isEmailSubscriber =
+        false;
 
     try {
 
         const {
             data,
             error
-        } = await supabaseClient
-            .from("subscribers")
-            .select("id,email")
-            .ilike(
-                "email",
-                normalizedEmail
-            )
-            .limit(1)
-            .maybeSingle();
+        } =
+            await supabaseClient
+                .from("subscribers")
+                .select(
+                    "id,email"
+                )
+                .ilike(
+                    "email",
+                    normalizedEmail
+                )
+                .limit(1)
+                .maybeSingle();
 
         if (error) {
 
@@ -955,9 +1372,11 @@ async function checkSubscriberEmail(email) {
                 error
             );
 
-            subscriberEmailChecked = true;
+            subscriberEmailChecked =
+                true;
 
-            isEmailSubscriber = false;
+            isEmailSubscriber =
+                false;
 
             lastCheckedSubscriberEmail =
                 normalizedEmail;
@@ -987,9 +1406,11 @@ async function checkSubscriberEmail(email) {
             error
         );
 
-        subscriberEmailChecked = true;
+        subscriberEmailChecked =
+            true;
 
-        isEmailSubscriber = false;
+        isEmailSubscriber =
+            false;
 
         lastCheckedSubscriberEmail =
             normalizedEmail;
@@ -1011,7 +1432,8 @@ function getEmailSubscriberDiscountBase() {
 
     return Math.max(
         0,
-        subtotal - couponDiscount
+        subtotal -
+            couponDiscount
     );
 }
 
@@ -1019,6 +1441,7 @@ function getEmailSubscriberDiscountBase() {
 function getEmailSubscriberDiscountAmount() {
 
     if (!isEmailSubscriber) {
+
         return 0;
     }
 
@@ -1059,7 +1482,8 @@ function getGrandTotal() {
         getTotalDiscount();
 
     const governorate =
-        $("governorate")?.value || "";
+        $("governorate")?.value ||
+        "";
 
     const shipping =
         getShippingFee(
@@ -1091,7 +1515,8 @@ function updateTotals() {
         subscriberDiscount;
 
     const governorate =
-        $("governorate")?.value || "";
+        $("governorate")?.value ||
+        "";
 
     const shipping =
         getShippingFee(
@@ -1119,6 +1544,7 @@ function updateTotals() {
         $("total");
 
     if (subtotalElement) {
+
         subtotalElement.textContent =
             money(subtotal);
     }
@@ -1158,6 +1584,7 @@ function showCheckoutMessage(
         $("checkoutNotification");
 
     if (!box) {
+
         return;
     }
 
@@ -1172,13 +1599,16 @@ function showCheckoutMessage(
         block: "nearest"
     });
 
-    setTimeout(() => {
+    setTimeout(
+        () => {
 
-        box.classList.remove(
-            "show"
-        );
+            box.classList.remove(
+                "show"
+            );
 
-    }, 5000);
+        },
+        5000
+    );
 }
 
 
@@ -1197,17 +1627,24 @@ function generateOrderNumber() {
     const month =
         String(
             now.getMonth() + 1
-        ).padStart(2, "0");
+        ).padStart(
+            2,
+            "0"
+        );
 
     const day =
         String(
             now.getDate()
-        ).padStart(2, "0");
+        ).padStart(
+            2,
+            "0"
+        );
 
     const random =
         Math.floor(
             1000 +
-            Math.random() * 9000
+            Math.random() *
+            9000
         );
 
     return `FS-${year}${month}${day}-${random}`;
@@ -1239,7 +1676,8 @@ function validatePaymentMethod() {
         paymentInput.value;
 
     if (
-        method === "Visa / Mastercard"
+        method ===
+        "Visa / Mastercard"
     ) {
 
         showCheckoutMessage(
@@ -1258,7 +1696,9 @@ function validatePaymentMethod() {
    CREATE ORDER
 ========================================================= */
 
-async function createOrder(formData) {
+async function createOrder(
+    formData
+) {
 
     if (!cart.length) {
 
@@ -1274,40 +1714,46 @@ async function createOrder(formData) {
 
     const customerName =
         String(
-            formData.get("customerName") ||
-            ""
+            formData.get(
+                "customerName"
+            ) || ""
         ).trim();
 
     const customerEmail =
         String(
-            formData.get("email") ||
-            ""
+            formData.get(
+                "email"
+            ) || ""
         )
             .trim()
             .toLowerCase();
 
     const phone =
         String(
-            formData.get("phone") ||
-            ""
+            formData.get(
+                "phone"
+            ) || ""
         ).trim();
 
     const whatsapp =
         String(
-            formData.get("whatsapp") ||
-            ""
+            formData.get(
+                "whatsapp"
+            ) || ""
         ).trim();
 
     const governorate =
         String(
-            formData.get("governorate") ||
-            ""
+            formData.get(
+                "governorate"
+            ) || ""
         ).trim();
 
     const address =
         String(
-            formData.get("address") ||
-            ""
+            formData.get(
+                "address"
+            ) || ""
         ).trim();
 
 
@@ -1436,6 +1882,17 @@ async function createOrder(formData) {
 
 
     /* =========================================
+       PAYMENT STATUS
+    ========================================= */
+
+    const paymentStatus =
+        paymentMethod ===
+        "Cash on Delivery"
+            ? "not_required"
+            : "pending";
+
+
+    /* =========================================
        CREATE ORDER
     ========================================= */
 
@@ -1451,7 +1908,8 @@ async function createOrder(formData) {
             phone,
 
         whatsapp:
-            whatsapp || null,
+            whatsapp ||
+            null,
 
         customer_email:
             customerEmail,
@@ -1464,6 +1922,9 @@ async function createOrder(formData) {
 
         payment_method:
             paymentMethod,
+
+        payment_status:
+            paymentStatus,
 
         status:
             "Pending",
@@ -1489,13 +1950,14 @@ async function createOrder(formData) {
     const {
         data: order,
         error: orderError
-    } = await supabaseClient
-        .from("orders")
-        .insert(
-            orderPayload
-        )
-        .select()
-        .single();
+    } =
+        await supabaseClient
+            .from("orders")
+            .insert(
+                orderPayload
+            )
+            .select()
+            .single();
 
 
     if (orderError) {
@@ -1517,48 +1979,61 @@ async function createOrder(formData) {
     ========================================= */
 
     const orderItems =
-        cart.map(item => ({
+        cart.map(
+            item => ({
 
-            order_id:
-                order.id,
+                order_id:
+                    order.id,
 
-            product_id:
-                getProductId(item),
+                product_id:
+                    getProductId(
+                        item
+                    ),
 
-            product_name:
-                item?.name ||
-                item?.product_name ||
-                "Product",
+                product_name:
+                    item?.name ||
+                    item?.product_name ||
+                    "Product",
 
-            product_image:
-                getImage(item),
+                product_image:
+                    getImage(
+                        item
+                    ),
 
-            size:
-                item?.size ||
-                null,
+                size:
+                    item?.size ||
+                    null,
 
-            color:
-                item?.color ||
-                null,
+                color:
+                    item?.color ||
+                    null,
 
-            quantity:
-                getQuantity(item),
+                quantity:
+                    getQuantity(
+                        item
+                    ),
 
-            price:
-                getPrice(item),
+                price:
+                    getPrice(
+                        item
+                    ),
 
-            subtotal:
-                getItemSubtotal(item)
-        }));
+                subtotal:
+                    getItemSubtotal(
+                        item
+                    )
+            })
+        );
 
 
     const {
         error: itemsError
-    } = await supabaseClient
-        .from("order-items")
-        .insert(
-            orderItems
-        );
+    } =
+        await supabaseClient
+            .from("order-items")
+            .insert(
+                orderItems
+            );
 
 
     if (itemsError) {
@@ -1583,21 +2058,23 @@ async function createOrder(formData) {
 
         const usedCount =
             Number(
-                appliedCoupon.used_count || 0
+                appliedCoupon.used_count ||
+                0
             );
 
         const {
             error
-        } = await supabaseClient
-            .from("coupons")
-            .update({
-                used_count:
-                    usedCount + 1
-            })
-            .eq(
-                "id",
-                appliedCoupon.id
-            );
+        } =
+            await supabaseClient
+                .from("coupons")
+                .update({
+                    used_count:
+                        usedCount + 1
+                })
+                .eq(
+                    "id",
+                    appliedCoupon.id
+                );
 
         if (error) {
 
@@ -1629,7 +2106,9 @@ async function sendOrderConfirmationEmail(
             await fetch(
                 `${SUPABASE_URL}/functions/v1/send-order-email`,
                 {
-                    method: "POST",
+
+                    method:
+                        "POST",
 
                     headers: {
 
@@ -1682,14 +2161,14 @@ async function sendOrderConfirmationEmail(
     }
 }
 
-
 /* =========================================================
    SHOW SUCCESS PAGE
 ========================================================= */
 
 function showOrderSuccess(
     orderNumber,
-    email
+    email,
+    order = null
 ) {
 
     const checkoutContent =
@@ -1710,12 +2189,20 @@ function showOrderSuccess(
         successPage
     ) {
 
+        /* Hide checkout */
+
         checkoutContent.style.display =
             "none";
+
+
+        /* Show success page */
 
         successPage.classList.add(
             "show"
         );
+
+
+        /* Order number */
 
         if (successOrderNumber) {
 
@@ -1723,19 +2210,122 @@ function showOrderSuccess(
                 `Order #${orderNumber}`;
         }
 
+
+        /* Success message */
+
         if (successEmail) {
 
             successEmail.textContent =
-                `Your order confirmation has been received. We will contact you regarding your order.`;
+                "Your order has been placed successfully. We will contact you regarding your order.";
         }
 
+
+        /* =========================================
+           REMOVE OLD WHATSAPP BUTTON
+        ========================================= */
+
+        const existingButton =
+            $("paymentWhatsAppBtn");
+
+        if (existingButton) {
+
+            existingButton.remove();
+        }
+
+
+        /* =========================================
+           WHATSAPP PAYMENT BUTTON
+           
+           Only for:
+           - InstaPay
+           - Vodafone Cash
+           
+           COD = no button
+        ========================================= */
+
+        if (
+            order &&
+            (
+                order.payment_method ===
+                    "InstaPay" ||
+
+                order.payment_method ===
+                    "Vodafone Cash"
+            )
+        ) {
+
+            const button =
+                document.createElement(
+                    "button"
+                );
+
+
+            button.type =
+                "button";
+
+
+            button.id =
+                "paymentWhatsAppBtn";
+
+
+            button.className =
+                "payment-whatsapp-btn";
+
+
+            /* Button content */
+
+            button.innerHTML = `
+                <span>↗</span>
+                <span>
+                    Send Payment Screenshot on WhatsApp
+                </span>
+            `;
+
+
+            /* =========================================
+               OPEN WHATSAPP ONLY AFTER CLICK
+            ========================================= */
+
+            button.addEventListener(
+                "click",
+                () => {
+
+                    openPaymentWhatsApp(
+                        order
+                    );
+
+                }
+            );
+
+
+            /* Add button to success page */
+
+            successPage.appendChild(
+                button
+            );
+        }
+
+
+        /* =========================================
+           SCROLL TO TOP
+        ========================================= */
+
         window.scrollTo({
+
             top: 0,
+
             behavior: "smooth"
+
         });
+
 
         return;
     }
+
+
+    /* =========================================
+       FALLBACK
+    ========================================= */
 
     showCheckoutMessage(
         `Order ${orderNumber} placed successfully!`,
@@ -1743,12 +2333,13 @@ function showOrderSuccess(
     );
 }
 
-
 /* =========================================================
    HANDLE CHECKOUT
 ========================================================= */
 
-async function handleCheckout(event) {
+async function handleCheckout(
+    event
+) {
 
     event.preventDefault();
 
@@ -1756,6 +2347,7 @@ async function handleCheckout(event) {
 
 
     if (submittingOrder) {
+
         return;
     }
 
@@ -1787,7 +2379,9 @@ async function handleCheckout(event) {
 
 
     const formData =
-        new FormData(form);
+        new FormData(
+            form
+        );
 
 
     submittingOrder =
@@ -1839,8 +2433,21 @@ async function handleCheckout(event) {
 
         showOrderSuccess(
             result.order.order_number,
-            formData.get("email")
+            formData.get("email"),
+            result.order
         );
+
+
+        /*
+           =========================================
+           IMPORTANT
+           =========================================
+
+           WhatsApp is NO LONGER opened automatically.
+
+           The customer sees a button on the
+           success page and must click it.
+        */
 
 
         /* =========================================
@@ -1858,9 +2465,11 @@ async function handleCheckout(event) {
 
         form.reset();
 
-        appliedCoupon = null;
+        appliedCoupon =
+            null;
 
-        isEmailSubscriber = false;
+        isEmailSubscriber =
+            false;
 
         subscriberEmailChecked =
             false;
@@ -1915,10 +2524,12 @@ function setupEmailSubscriberCheck() {
         $("email");
 
     if (!emailInput) {
+
         return;
     }
 
-    let timeout = null;
+    let timeout =
+        null;
 
 
     emailInput.addEventListener(
@@ -1995,7 +2606,13 @@ function setupEvents() {
 
         governorateSelect.addEventListener(
             "change",
-            updateTotals
+            () => {
+
+                updateTotals();
+
+                updateShippingDisplay();
+
+            }
         );
     }
 
@@ -2042,7 +2659,6 @@ function setupEvents() {
     setupEmailSubscriberCheck();
 }
 
-
 /* =========================================================
    INIT
 ========================================================= */
@@ -2057,8 +2673,11 @@ async function initCheckout() {
 
 
     await Promise.all([
+
         loadShippingRates(),
+
         loadPaymentSettings()
+
     ]);
 
 

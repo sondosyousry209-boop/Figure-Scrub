@@ -1,14 +1,14 @@
-
-/* =====================================================
+/* =========================================================
    FIGURE SCRUB
    HOME + SHOP + CART + QUICK VIEW + FILTERS
    SUPABASE + REALTIME
-===================================================== */
+   MULTI IMAGES + SIZE STOCK + GENDER + DESCRIPTION
+========================================================= */
 
 
-/* =====================================================
+/* =========================================================
    SUPABASE
-===================================================== */
+========================================================= */
 
 const SUPABASE_URL =
     "https://fsbzopacumiuwjsegsgu.supabase.co";
@@ -19,9 +19,9 @@ const SUPABASE_PUBLISHABLE_KEY =
 let supabaseClient = null;
 
 
-/* =====================================================
+/* =========================================================
    GLOBAL STATE
-===================================================== */
+========================================================= */
 
 let products = [];
 let filteredProducts = [];
@@ -30,43 +30,18 @@ let activeFilter = "all";
 
 let selectedProduct = null;
 let selectedSize = null;
+
 let modalQuantity = 1;
 
 let cart = [];
 
-
-/* =====================================================
-   LOAD CART
-===================================================== */
-
-try {
-
-    const savedCart =
-        localStorage.getItem("figureScrubCart");
-
-    cart =
-        savedCart
-            ? JSON.parse(savedCart)
-            : [];
-
-    if (!Array.isArray(cart)) {
-        cart = [];
-    }
-
-} catch (error) {
-
-    console.error(
-        "Cart loading error:",
-        error
-    );
-
-    cart = [];
-}
+let currentModalImages = [];
+let currentModalImageIndex = 0;
 
 
-/* =====================================================
-   DOM ELEMENTS
-===================================================== */
+/* =========================================================
+   DOM
+========================================================= */
 
 let shopProducts = null;
 let productCount = null;
@@ -81,79 +56,9 @@ let productModal = null;
 let cartDrawer = null;
 
 
-/* =====================================================
-   DOM READY
-===================================================== */
-
-document.addEventListener(
-    "DOMContentLoaded",
-    async function () {
-
-        initializeDOM();
-
-        initializeSupabase();
-
-        setupNewsletter();
-
-        setupFilters();
-
-        setupModal();
-
-        setupCart();
-
-        setupGlobalActions();
-
-        updateCartCount();
-
-        await loadProducts();
-
-        setupRealtime();
-
-        await loadCouponBar();
-
-    }
-);
-
-
-/* =====================================================
-   INITIALIZE SUPABASE
-===================================================== */
-
-function initializeSupabase() {
-
-    if (
-        window.supabase &&
-        typeof window.supabase.createClient === "function"
-    ) {
-
-        supabaseClient =
-            window.supabase.createClient(
-                SUPABASE_URL,
-                SUPABASE_PUBLISHABLE_KEY
-            );
-
-        console.log(
-            "Figure Scrub Supabase connected."
-        );
-
-    } else {
-
-        console.error(
-            "Supabase CDN was not loaded."
-        );
-
-        showSiteMessage(
-            "Unable to connect to the store database."
-        );
-
-    }
-
-}
-
-
-/* =====================================================
+/* =========================================================
    INITIALIZE DOM
-===================================================== */
+========================================================= */
 
 function initializeDOM() {
 
@@ -197,112 +102,266 @@ function initializeDOM() {
             "cartDrawer"
         );
 
+    loadCart();
 }
 
 
-/* =====================================================
-   LOAD PRODUCTS FROM SUPABASE
-===================================================== */
+/* =========================================================
+   INITIALIZE SUPABASE
+========================================================= */
 
-async function loadProducts() {
+function initializeSupabase() {
 
-    if (!supabaseClient) {
+    if (
+        typeof window.supabase ===
+        "undefined"
+    ) {
 
         console.error(
-            "Supabase is not initialized."
+            "Supabase library was not loaded."
         );
 
-        showNoProducts();
-
         return;
-
     }
 
+    supabaseClient =
+        window.supabase.createClient(
+            SUPABASE_URL,
+            SUPABASE_PUBLISHABLE_KEY
+        );
+}
+
+
+/* =========================================================
+   DOM READY
+========================================================= */
+
+document.addEventListener(
+    "DOMContentLoaded",
+    async () => {
+
+        initializeDOM();
+
+        initializeSupabase();
+
+        if (!supabaseClient) {
+            return;
+        }
+
+        setupNewsletter();
+
+        setupFilters();
+
+        setupModal();
+
+        setupCart();
+
+        setupGlobalActions();
+
+        updateCartCount();
+
+        await loadProducts();
+        await loadFooterSocials();
+        setupRealtime();
+
+        await loadCouponBar();
+    }
+);
+
+
+/* =========================================================
+   CART STORAGE
+========================================================= */
+
+function loadCart() {
+
+    try {
+
+        const saved =
+            localStorage.getItem(
+                "figureScrubCart"
+            );
+
+        cart =
+            saved
+                ? JSON.parse(saved)
+                : [];
+
+        if (!Array.isArray(cart)) {
+            cart = [];
+        }
+
+    } catch (error) {
+
+        console.warn(
+            "Could not load cart:",
+            error
+        );
+
+        cart = [];
+    }
+}
+
+
+function saveCart() {
+
+    try {
+
+        localStorage.setItem(
+            "figureScrubCart",
+            JSON.stringify(cart)
+        );
+
+    } catch (error) {
+
+        console.warn(
+            "Could not save cart:",
+            error
+        );
+    }
+
+    updateCartCount();
+}
+
+
+function updateCartCount() {
+
+    const count =
+        cart.reduce(
+            (
+                total,
+                item
+            ) =>
+                total +
+                Number(
+                    item.quantity || 0
+                ),
+            0
+        );
+
+    document
+        .querySelectorAll(
+            ".cart-count"
+        )
+        .forEach(
+            element => {
+
+                element.textContent =
+                    count;
+            }
+        );
+}
+
+
+/* =========================================================
+   PRODUCTS
+========================================================= */
+async function loadProducts() {
 
     try {
 
         const {
             data,
             error
-        } =
-            await supabaseClient
-                .from("products")
-                .select("*")
-                .eq(
-                    "is_active",
-                    true
-                )
-                .order(
-                    "created_at",
-                    {
-                        ascending: false
-                    }
-                );
-
+        } = await supabaseClient
+            .from("products")
+            .select("*")
+            .order(
+                "created_at",
+                {
+                    ascending: false
+                }
+            );
 
         if (error) {
-
-            console.error(
-                "Supabase products error:",
-                error
-            );
-
-            showNoProducts();
-
-            showSiteMessage(
-                "Could not load products."
-            );
-
-            return;
-
+            throw error;
         }
 
+        /*
+         * Keep active products only.
+         * Supports boolean, string and number values.
+         */
 
-        products =
-            Array.isArray(data)
-                ? data
-                : [];
+        products = (data || []).filter(product => {
 
+            return (
+                product.is_active === true ||
+                product.is_active === "true" ||
+                product.is_active === 1 ||
+                product.is_active === "1"
+            );
+
+        });
 
         console.log(
-            "Products loaded:",
+            "FIGURE SCRUB PRODUCTS:",
             products
         );
 
+        console.log(
+            "PRODUCT COUNT:",
+            products.length
+        );
 
         cleanupCartAgainstProducts();
-
 
         populateDynamicFilters();
 
         renderHomeSections();
+
+        activeFilter = "all";
+
+        /*
+         * Make sure ALL is selected
+         */
+
+        document
+            .querySelectorAll(".filter-btn")
+            .forEach(button => {
+
+                button.classList.toggle(
+                    "active",
+                    String(
+                        button.dataset.filter || ""
+                    ).toLowerCase() === "all"
+                );
+
+            });
 
         applyFilters();
 
     } catch (error) {
 
         console.error(
-            "Unexpected products error:",
+            "Products failed:",
             error
         );
 
-        showNoProducts();
+        products = [];
 
+        if (shopProducts) {
+            shopProducts.innerHTML = "";
+        }
+
+        if (productCount) {
+            productCount.textContent = "0";
+        }
+
+        if (noProducts) {
+            noProducts.hidden = false;
+            noProducts.style.display = "";
+        }
     }
-
 }
-
-
-/* =====================================================
+/* =========================================================
    REALTIME
-===================================================== */
+========================================================= */
 
 function setupRealtime() {
 
     if (!supabaseClient) {
         return;
     }
-
 
     supabaseClient
         .channel(
@@ -315,3781 +374,477 @@ function setupRealtime() {
                 schema: "public",
                 table: "products"
             },
-            async function () {
-
-                console.log(
-                    "Products changed. Reloading..."
-                );
+            async () => {
 
                 await loadProducts();
-
             }
         )
-        .subscribe(
-            function (status) {
-
-                console.log(
-                    "Products realtime:",
-                    status
-                );
-
-            }
-        );
-
+        .subscribe();
 }
 
 
-/* =====================================================
-   HOME SECTIONS
-===================================================== */
-
-function renderHomeSections() {
-
-    /* =================================================
-       FEATURED
-       First 3 active products
-    ================================================= */
-
-    const featuredContainer =
-        document.getElementById(
-            "featuredProducts"
-        );
-
-
-    if (featuredContainer) {
-
-        const featured =
-            products.slice(0, 3);
-
-        renderHomeProductList(
-            featuredContainer,
-            featured
-        );
-
-    }
-
-
-    /* =================================================
-       MOST LOVED
-       is_best_seller OR is_most_ordered
-    ================================================= */
-
-    const bestSection =
-        document.getElementById(
-            "bestSellersSection"
-        );
-
-    const bestContainer =
-        document.getElementById(
-            "bestSellersProducts"
-        );
-
-
-    if (
-        bestSection &&
-        bestContainer
-    ) {
-
-        const bestProducts =
-            products
-                .filter(
-                    function (product) {
-
-                        return (
-                            product.is_best_seller === true ||
-                            product.is_most_ordered === true
-                        );
-
-                    }
-                )
-                .slice(0, 3);
-
-
-        if (bestProducts.length) {
-
-            bestSection.style.display =
-                "";
-
-            renderHomeProductList(
-                bestContainer,
-                bestProducts
-            );
-
-        } else {
-
-            bestSection.style.display =
-                "none";
-
-            bestContainer.innerHTML =
-                "";
-
-        }
-
-    }
-
-
-    /* =================================================
-       JUST IN
-       is_just_arrived OR is_new
-    ================================================= */
-
-    const newSection =
-        document.getElementById(
-            "newArrivalsSection"
-        );
-
-    const newContainer =
-        document.getElementById(
-            "newArrivalsProducts"
-        );
-
-
-    if (
-        newSection &&
-        newContainer
-    ) {
-
-        const newProducts =
-            products
-                .filter(
-                    function (product) {
-
-                        return (
-                            product.is_just_arrived === true ||
-                            product.is_new === true
-                        );
-
-                    }
-                )
-                .slice(0, 3);
-
-
-        if (newProducts.length) {
-
-            newSection.style.display =
-                "";
-
-            renderHomeProductList(
-                newContainer,
-                newProducts
-            );
-
-        } else {
-
-            newSection.style.display =
-                "none";
-
-            newContainer.innerHTML =
-                "";
-
-        }
-
-    }
-
-}
-
-
-/* =====================================================
-   HOME PRODUCT LIST
-===================================================== */
-
-function renderHomeProductList(
-    container,
-    productList
-) {
-
-    if (!container) {
-        return;
-    }
-
-
-    container.innerHTML =
-        "";
-
-
-    productList.forEach(
-        function (product) {
-
-            container.appendChild(
-                createProductCard(product)
-            );
-
-        }
-    );
-
-}
-
-
-/* =====================================================
-   DYNAMIC FILTERS
-===================================================== */
-
-function populateDynamicFilters() {
-
-    populateColorFilter();
-
-    populateSizeFilter();
-
-}
-
-
-/* =====================================================
-   COLOR FILTER
-===================================================== */
-
-function populateColorFilter() {
-
-    if (!colorFilter) {
-        return;
-    }
-
-
-    const currentValue =
-        colorFilter.value;
-
-
-    const colorMap =
-        new Map();
-
-
-    products.forEach(
-        function (product) {
-
-            const color =
-                String(
-                    product.color || ""
-                ).trim();
-
-
-            if (!color) {
-                return;
-            }
-
-
-            const key =
-                color.toLowerCase();
-
-
-            if (!colorMap.has(key)) {
-
-                colorMap.set(
-                    key,
-                    color
-                );
-
-            }
-
-        }
-    );
-
-
-    const colors =
-        Array.from(
-            colorMap.values()
-        ).sort(
-            function (a, b) {
-
-                return a.localeCompare(
-                    b,
-                    undefined,
-                    {
-                        sensitivity: "base"
-                    }
-                );
-
-            }
-        );
-
-
-    colorFilter.innerHTML =
-        "";
-
-
-    addFilterOption(
-        colorFilter,
-        "all",
-        "COLOR"
-    );
-
-
-    colors.forEach(
-        function (color) {
-
-            addFilterOption(
-                colorFilter,
-                color,
-                color.toUpperCase()
-            );
-
-        }
-    );
-
-
-    if (
-        Array.from(
-            colorFilter.options
-        ).some(
-            function (option) {
-
-                return (
-                    option.value ===
-                    currentValue
-                );
-
-            }
-        )
-    ) {
-
-        colorFilter.value =
-            currentValue;
-
-    } else {
-
-        colorFilter.value =
-            "all";
-
-    }
-
-}
-
-
-/* =====================================================
-   SIZE FILTER
-===================================================== */
-
-function populateSizeFilter() {
-
-    if (!sizeFilter) {
-        return;
-    }
-
-
-    const currentValue =
-        sizeFilter.value;
-
-
-    const sizeMap =
-        new Map();
-
-
-    products.forEach(
-        function (product) {
-
-            normalizeSizes(
-                product.sizes
-            ).forEach(
-                function (size) {
-
-                    const key =
-                        size.toLowerCase();
-
-
-                    if (
-                        !sizeMap.has(key)
-                    ) {
-
-                        sizeMap.set(
-                            key,
-                            size
-                        );
-
-                    }
-
-                }
-            );
-
-        }
-    );
-
-
-    const sizes =
-        Array.from(
-            sizeMap.values()
-        ).sort(
-            function (a, b) {
-
-                return a.localeCompare(
-                    b,
-                    undefined,
-                    {
-                        numeric: true,
-                        sensitivity: "base"
-                    }
-                );
-
-            }
-        );
-
-
-    sizeFilter.innerHTML =
-        "";
-
-
-    addFilterOption(
-        sizeFilter,
-        "all",
-        "SIZE"
-    );
-
-
-    sizes.forEach(
-        function (size) {
-
-            addFilterOption(
-                sizeFilter,
-                size,
-                size
-            );
-
-        }
-    );
-
-
-    if (
-        Array.from(
-            sizeFilter.options
-        ).some(
-            function (option) {
-
-                return (
-                    option.value ===
-                    currentValue
-                );
-
-            }
-        )
-    ) {
-
-        sizeFilter.value =
-            currentValue;
-
-    } else {
-
-        sizeFilter.value =
-            "all";
-
-    }
-
-}
-
-
-/* =====================================================
-   ADD FILTER OPTION
-===================================================== */
-
-function addFilterOption(
-    select,
-    value,
-    text
-) {
-
-    const option =
-        document.createElement(
-            "option"
-        );
-
-    option.value =
-        value;
-
-    option.textContent =
-        text;
-
-    select.appendChild(
-        option
-    );
-
-}
-
-
-/* =====================================================
-   CREATE PRODUCT CARD
-===================================================== */
-
-function createProductCard(product) {
-
-    const card =
-        document.createElement(
-            "article"
-        );
-
-
-    card.className =
-        "product-card";
-
-
-    const price =
-        Number(
-            product.price || 0
-        );
-
-
-    const oldPrice =
-        Number(
-            product.old_price || 0
-        );
-
-
-    const stock =
-        getStock(product);
-
-
-    const available =
-        stock > 0;
-
-
-    const color =
-        String(
-            product.color || ""
-        ).trim();
-
-
-    const sizes =
-        normalizeSizes(
-            product.sizes
-        );
-
-
-    /* =================================================
-       BADGE
-    ================================================= */
-
-    let badge = "";
-
-
-    if (
-        product.is_just_arrived ||
-        product.is_new
-    ) {
-
-        badge =
-            '<span class="product-badge">NEW</span>';
-
-    } else if (
-        product.is_best_seller ||
-        product.is_most_ordered
-    ) {
-
-        badge =
-            '<span class="product-badge">BEST SELLER</span>';
-
-    }
-
-
-    /* =================================================
-       IMAGE
-    ================================================= */
-
-    let imageHTML = "";
-
-
-    if (
-        product.image_url &&
-        String(product.image_url).trim()
-    ) {
-
-        imageHTML =
-
-            '<img ' +
-                'src="' +
-                    escapeHTML(
-                        product.image_url
-                    ) +
-                '" ' +
-                'alt="' +
-                    escapeHTML(
-                        product.name ||
-                        "Figure Scrub product"
-                    ) +
-                '" ' +
-                'loading="lazy">';
-
-    } else {
-
-        imageHTML =
-
-            '<div class="product-placeholder">' +
-                'FIGURE SCRUB' +
-            '</div>';
-
-    }
-
-
-    /* =================================================
-       COLOR DOT
-    ================================================= */
-
-    let colorHTML = "";
-
-
-    if (color) {
-
-        colorHTML =
-
-            '<div class="color-options">' +
-
-                '<span ' +
-                    'class="color-dot" ' +
-                    'title="' +
-                        escapeHTML(color) +
-                    '" ' +
-                    'style="background:' +
-                        getColorValue(color) +
-                    ';">' +
-                '</span>' +
-
-            '</div>';
-
-    }
-
-
-    /* =================================================
-       OLD PRICE
-    ================================================= */
-
-    let oldPriceHTML = "";
-
-
-    if (
-        oldPrice > price
-    ) {
-
-        oldPriceHTML =
-
-            '<span class="old-price">' +
-                formatPrice(oldPrice) +
-            '</span>';
-
-    }
-
-
-    /* =================================================
-       CARD DATA
-    ================================================= */
-
-    card.dataset.category =
-        product.category || "";
-
-
-    card.dataset.available =
-        String(available);
-
-
-    card.dataset.best =
-        (
-            product.is_best_seller ||
-            product.is_most_ordered
-        )
-            ? "true"
-            : "false";
-
-
-    card.dataset.new =
-        (
-            product.is_new ||
-            product.is_just_arrived
-        )
-            ? "true"
-            : "false";
-
-
-    card.dataset.size =
-        sizes.join(",");
-
-
-    card.dataset.color =
-        color;
-
-
-    card.dataset.price =
-        String(price);
-
-
-    /* =================================================
-       CARD HTML
-    ================================================= */
-
-    card.innerHTML =
-
-        '<div ' +
-            'class="product-image" ' +
-            'data-action="quick-view">' +
-
-            imageHTML +
-
-            badge +
-
-            '<button ' +
-                'class="quick-view" ' +
-                'type="button" ' +
-                'data-action="quick-view">' +
-
-                'QUICK VIEW' +
-
-            '</button>' +
-
-        '</div>' +
-
-
-        '<div class="product-info">' +
-
-            '<div class="product-main-info">' +
-
-                '<h3>' +
-                    escapeHTML(
-                        product.name ||
-                        "FIGURE SCRUB"
-                    ) +
-                '</h3>' +
-
-                '<p>' +
-                    escapeHTML(
-                        color ||
-                        "Premium Medical Scrub"
-                    ) +
-                '</p>' +
-
-                colorHTML +
-
-            '</div>' +
-
-
-            '<div class="product-pricing">' +
-
-                oldPriceHTML +
-
-                '<span class="current-price">' +
-                    formatPrice(price) +
-                '</span>' +
-
-            '</div>' +
-
-        '</div>' +
-
-
-        '<button ' +
-            'class="add-to-cart" ' +
-            'type="button" ' +
-            'data-action="add-to-cart" ' +
-            (
-                available
-                    ? ""
-                    : "disabled"
-            ) +
-        '>' +
-
-            (
-                available
-                    ? "ADD TO CART"
-                    : "OUT OF STOCK"
-            ) +
-
-        '</button>';
-
-
-    /* =================================================
-       CARD ACTIONS
-    ================================================= */
-
-    card.addEventListener(
-        "click",
-        function (event) {
-
-            const actionElement =
-                event.target.closest(
-                    "[data-action]"
-                );
-
-
-            if (!actionElement) {
-                return;
-            }
-
-
-            const action =
-                actionElement.dataset.action;
-
-
-            if (
-                action ===
-                "quick-view"
-            ) {
-
-                openProductModal(
-                    product
-                );
-
-            }
-
-
-            if (
-                action ===
-                "add-to-cart"
-            ) {
-
-                if (
-                    getStock(product) <= 0
-                ) {
-
-                    showSiteMessage(
-                        "This product is out of stock."
-                    );
-
-                    return;
-
-                }
-
-
-                openProductModal(
-                    product
-                );
-
-            }
-
-        }
-    );
-
-
-    return card;
-
-}
-
-
-/* =====================================================
-   FILTER SETUP
-===================================================== */
-
-function setupFilters() {
-
-    const filterButtons =
-        document.querySelectorAll(
-            ".filter-btn"
-        );
-
-
-    filterButtons.forEach(
-        function (button) {
-
-            button.addEventListener(
-                "click",
-                function () {
-
-                    filterButtons.forEach(
-                        function (btn) {
-
-                            btn.classList.remove(
-                                "active"
-                            );
-
-                        }
-                    );
-
-
-                    button.classList.add(
-                        "active"
-                    );
-
-
-                    activeFilter =
-                        normalizeFilter(
-                            button.dataset.filter
-                        );
-
-
-                    applyFilters();
-
-                }
-            );
-
-        }
-    );
-
-
-    [
-        sizeFilter,
-        colorFilter,
-        priceFilter
-    ].forEach(
-        function (select) {
-
-            if (!select) {
-                return;
-            }
-
-
-            select.addEventListener(
-                "change",
-                applyFilters
-            );
-
-        }
-    );
-
-
-    const resetButton =
-        document.getElementById(
-            "resetFilters"
-        );
-
-
-    if (resetButton) {
-
-        resetButton.addEventListener(
-            "click",
-            resetFilters
-        );
-
-    }
-
-}
-
-
-/* =====================================================
-   NORMALIZE FILTER
-===================================================== */
-
-function normalizeFilter(value) {
-
-    const filter =
-        String(
-            value || ""
-        )
-            .trim()
-            .toLowerCase();
-
-
-    if (
-        filter === "new" ||
-        filter === "new arrivals"
-    ) {
-
-        return "new";
-
-    }
-
-
-    if (
-        filter === "best" ||
-        filter === "best sellers" ||
-        filter === "most ordered"
-    ) {
-
-        return "best";
-
-    }
-
-
-    if (
-        filter === "available"
-    ) {
-
-        return "available";
-
-    }
-
-
-    if (
-        filter === "out" ||
-        filter === "out of stock"
-    ) {
-
-        return "out";
-
-    }
-
-
-    return "all";
-
-}
-
-
-/* =====================================================
-   APPLY FILTERS
-===================================================== */
-
-function applyFilters() {
-
-    filteredProducts =
-        products.filter(
-            function (product) {
-
-                /* MAIN FILTER */
-
-                if (
-                    activeFilter ===
-                    "new"
-                ) {
-
-                    if (
-                        !product.is_new &&
-                        !product.is_just_arrived
-                    ) {
-
-                        return false;
-
-                    }
-
-                }
-
-
-                if (
-                    activeFilter ===
-                    "best"
-                ) {
-
-                    if (
-                        !product.is_best_seller &&
-                        !product.is_most_ordered
-                    ) {
-
-                        return false;
-
-                    }
-
-                }
-
-
-                if (
-                    activeFilter ===
-                    "available"
-                ) {
-
-                    if (
-                        getStock(product) <= 0
-                    ) {
-
-                        return false;
-
-                    }
-
-                }
-
-
-                if (
-                    activeFilter ===
-                    "out"
-                ) {
-
-                    if (
-                        getStock(product) > 0
-                    ) {
-
-                        return false;
-
-                    }
-
-                }
-
-
-                /* SIZE FILTER */
-
-                if (
-                    sizeFilter &&
-                    sizeFilter.value !==
-                        "all"
-                ) {
-
-                    const selectedSizeValue =
-                        String(
-                            sizeFilter.value
-                        ).toLowerCase();
-
-
-                    const hasSize =
-                        normalizeSizes(
-                            product.sizes
-                        ).some(
-                            function (size) {
-
-                                return (
-                                    String(size)
-                                        .toLowerCase() ===
-                                    selectedSizeValue
-                                );
-
-                            }
-                        );
-
-
-                    if (!hasSize) {
-
-                        return false;
-
-                    }
-
-                }
-
-
-                /* COLOR FILTER */
-
-                if (
-                    colorFilter &&
-                    colorFilter.value !==
-                        "all"
-                ) {
-
-                    const productColor =
-                        String(
-                            product.color || ""
-                        )
-                            .trim()
-                            .toLowerCase();
-
-
-                    const selectedColor =
-                        String(
-                            colorFilter.value || ""
-                        )
-                            .trim()
-                            .toLowerCase();
-
-
-                    if (
-                        productColor !==
-                        selectedColor
-                    ) {
-
-                        return false;
-
-                    }
-
-                }
-
-
-                /* PRICE FILTER */
-
-                if (
-                    priceFilter &&
-                    priceFilter.value !==
-                        "all"
-                ) {
-
-                    const price =
-                        Number(
-                            product.price || 0
-                        );
-
-
-                    if (
-                        priceFilter.value ===
-                        "under1000"
-                    ) {
-
-                        if (
-                            price >= 1000
-                        ) {
-
-                            return false;
-
-                        }
-
-                    }
-
-
-                    if (
-                        priceFilter.value ===
-                        "1000-1500"
-                    ) {
-
-                        if (
-                            price < 1000 ||
-                            price > 1500
-                        ) {
-
-                            return false;
-
-                        }
-
-                    }
-
-
-                    if (
-                        priceFilter.value ===
-                        "over1500"
-                    ) {
-
-                        if (
-                            price <= 1500
-                        ) {
-
-                            return false;
-
-                        }
-
-                    }
-
-                }
-
-
-                return true;
-
-            }
-        );
-
-
-    renderProducts();
-
-}
-
-
-/* =====================================================
-   RENDER SHOP
-===================================================== */
-
-function renderProducts() {
-
-    if (!shopProducts) {
-        return;
-    }
-
-
-    shopProducts.innerHTML =
-        "";
-
-
-    if (
-        !filteredProducts.length
-    ) {
-
-        showNoProducts();
-
-        updateProductCount(
-            0
-        );
-
-        return;
-
-    }
-
-
-    hideNoProducts();
-
-
-    filteredProducts.forEach(
-        function (product) {
-
-            shopProducts.appendChild(
-                createProductCard(
-                    product
-                )
-            );
-
-        }
-    );
-
-
-    updateProductCount(
-        filteredProducts.length
-    );
-
-}
-
-
-/* =====================================================
-   RESET FILTERS
-===================================================== */
-
-function resetFilters() {
-
-    activeFilter =
-        "all";
-
-
-    document
-        .querySelectorAll(
-            ".filter-btn"
-        )
-        .forEach(
-            function (button) {
-
-                button.classList.toggle(
-                    "active",
-                    button.dataset.filter ===
-                    "all"
-                );
-
-            }
-        );
-
-
-    if (sizeFilter) {
-        sizeFilter.value = "all";
-    }
-
-
-    if (colorFilter) {
-        colorFilter.value = "all";
-    }
-
-
-    if (priceFilter) {
-        priceFilter.value = "all";
-    }
-
-
-    applyFilters();
-
-}
-
-
-/* =====================================================
-   MODAL SETUP
-===================================================== */
-
-function setupModal() {
-
-    if (!productModal) {
-        return;
-    }
-
-
-    const closeButton =
-        productModal.querySelector(
-            ".modal-close"
-        );
-
-
-    const overlay =
-        productModal.querySelector(
-            ".modal-overlay"
-        );
-
-
-    if (closeButton) {
-
-        closeButton.addEventListener(
-            "click",
-            closeProductModal
-        );
-
-    }
-
-
-    if (overlay) {
-
-        overlay.addEventListener(
-            "click",
-            closeProductModal
-        );
-
-    }
-
-
-    setupSizeChartButton();
-
-
-    document.addEventListener(
-        "keydown",
-        function (event) {
-
-            if (
-                event.key === "Escape"
-            ) {
-
-                if (
-                    !productModal.hidden
-                ) {
-
-                    closeProductModal();
-
-                }
-
-
-                const chart =
-                    document.querySelector(
-                        ".size-chart-overlay"
-                    );
-
-
-                if (chart) {
-
-                    closeSizeChart();
-
-                }
-
-            }
-
-        }
-    );
-
-}
-
-
-/* =====================================================
-   SIZE CHART BUTTON
-===================================================== */
-
-function setupSizeChartButton() {
-
-    if (!productModal) {
-        return;
-    }
-
-
-    const sizeContainer =
-        productModal.querySelector(
-            ".size-options"
-        );
-
-
-    if (!sizeContainer) {
-        return;
-    }
-
-
-    if (
-        productModal.querySelector(
-            ".view-size-chart"
-        )
-    ) {
-
-        return;
-
-    }
-
-
-    const button =
-        document.createElement(
-            "button"
-        );
-
-
-    button.type =
-        "button";
-
-
-    button.className =
-        "view-size-chart";
-
-
-    button.textContent =
-        "VIEW SIZE CHART";
-
-
-    button.style.display =
-        "none";
-
-
-    sizeContainer.insertAdjacentElement(
-        "afterend",
-        button
-    );
-
-
-    button.addEventListener(
-        "click",
-        function () {
-
-            if (
-                !selectedProduct
-            ) {
-
-                return;
-
-            }
-
-
-            if (
-                !selectedProduct.size_chart_url
-            ) {
-
-                showSiteMessage(
-                    "Size chart is not available for this product."
-                );
-
-                return;
-
-            }
-
-
-            openSizeChart(
-                selectedProduct.size_chart_url,
-                selectedProduct.name
-            );
-
-        }
-    );
-
-}
-
-
-/* =====================================================
-   UPDATE SIZE CHART BUTTON
-===================================================== */
-
-function updateSizeChartButton(
-    product
-) {
-
-    if (!productModal) {
-        return;
-    }
-
-
-    const button =
-        productModal.querySelector(
-            ".view-size-chart"
-        );
-
-
-    if (!button) {
-        return;
-    }
-
-
-    button.style.display =
-        (
-            product &&
-            product.size_chart_url
-        )
-            ? "inline-flex"
-            : "none";
-
-}
-
-
-/* =====================================================
-   OPEN SIZE CHART
-===================================================== */
-
-function openSizeChart(
-    imageURL,
-    productName
-) {
-
-    const existing =
-        document.querySelector(
-            ".size-chart-overlay"
-        );
-
-
-    if (existing) {
-        existing.remove();
-    }
-
-
-    const overlay =
-        document.createElement(
-            "div"
-        );
-
-
-    overlay.className =
-        "size-chart-overlay";
-
-
-    overlay.innerHTML =
-
-        '<div class="size-chart-box">' +
-
-            '<button ' +
-                'class="size-chart-close" ' +
-                'type="button">' +
-
-                '×' +
-
-            '</button>' +
-
-            '<div class="size-chart-header">' +
-
-                '<p>SIZE GUIDE</p>' +
-
-                '<h3>' +
-                    escapeHTML(
-                        productName ||
-                        "FIGURE SCRUB"
-                    ) +
-                '</h3>' +
-
-            '</div>' +
-
-            '<div class="size-chart-image-wrapper">' +
-
-                '<img ' +
-                    'src="' +
-                        escapeHTML(
-                            imageURL
-                        ) +
-                    '" ' +
-                    'alt="Size chart">' +
-
-            '</div>' +
-
-        '</div>';
-
-
-    document.body.appendChild(
-        overlay
-    );
-
-
-    addSizeChartStyles();
-
-
-    const closeButton =
-        overlay.querySelector(
-            ".size-chart-close"
-        );
-
-
-    if (closeButton) {
-
-        closeButton.addEventListener(
-            "click",
-            closeSizeChart
-        );
-
-    }
-
-
-    overlay.addEventListener(
-        "click",
-        function (event) {
-
-            if (
-                event.target ===
-                overlay
-            ) {
-
-                closeSizeChart();
-
-            }
-
-        }
-    );
-
-
-    document.body.style.overflow =
-        "hidden";
-
-
-    requestAnimationFrame(
-        function () {
-
-            overlay.classList.add(
-                "visible"
-            );
-
-        }
-    );
-
-}
-
-
-/* =====================================================
-   CLOSE SIZE CHART
-===================================================== */
-
-function closeSizeChart() {
-
-    const overlay =
-        document.querySelector(
-            ".size-chart-overlay"
-        );
-
-
-    if (!overlay) {
-        return;
-    }
-
-
-    overlay.remove();
-
-
-    if (
-        productModal &&
-        !productModal.hidden
-    ) {
-
-        document.body.style.overflow =
-            "hidden";
-
-    } else if (
-        cartDrawer &&
-        !cartDrawer.hidden
-    ) {
-
-        document.body.style.overflow =
-            "hidden";
-
-    } else {
-
-        document.body.style.overflow =
-            "";
-
-    }
-
-}
-
-
-/* =====================================================
-   SIZE CHART STYLES
-===================================================== */
-
-function addSizeChartStyles() {
-
-    if (
-        document.getElementById(
-            "figureScrubSizeChartStyles"
-        )
-    ) {
-
-        return;
-
-    }
-
-
-    const style =
-        document.createElement(
-            "style"
-        );
-
-
-    style.id =
-        "figureScrubSizeChartStyles";
-
-
-    style.textContent = `
-
-        .view-size-chart {
-            margin-top: 12px;
-            padding: 10px 16px;
-            border: 1px solid currentColor;
-            background: transparent;
-            cursor: pointer;
-            font-size: 11px;
-            letter-spacing: 1.5px;
-            font-weight: 600;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.25s ease;
-        }
-
-        .view-size-chart:hover {
-            opacity: 0.75;
-        }
-
-        .size-chart-overlay {
-            position: fixed;
-            inset: 0;
-            z-index: 99999;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 24px;
-            background: rgba(20,20,20,0.72);
-            opacity: 0;
-            transition: opacity 0.25s ease;
-        }
-
-        .size-chart-overlay.visible {
-            opacity: 1;
-        }
-
-        .size-chart-box {
-            position: relative;
-            width: min(900px,96vw);
-            max-height: 92vh;
-            overflow: auto;
-            background: #ffffff;
-            padding: 28px;
-            box-shadow: 0 20px 70px rgba(0,0,0,0.25);
-        }
-
-        .size-chart-close {
-            position: absolute;
-            top: 12px;
-            right: 14px;
-            width: 36px;
-            height: 36px;
-            border: 0;
-            background: transparent;
-            font-size: 28px;
-            line-height: 1;
-            cursor: pointer;
-            z-index: 2;
-        }
-
-        .size-chart-header {
-            text-align: center;
-            margin-bottom: 20px;
-            padding-right: 30px;
-        }
-
-        .size-chart-header p {
-            margin: 0 0 5px;
-            font-size: 10px;
-            letter-spacing: 2px;
-        }
-
-        .size-chart-header h3 {
-            margin: 0;
-            font-size: 22px;
-        }
-
-        .size-chart-image-wrapper {
-            width: 100%;
-            text-align: center;
-        }
-
-        .size-chart-image-wrapper img {
-            display: block;
-            max-width: 100%;
-            width: auto;
-            max-height: 72vh;
-            height: auto;
-            margin: 0 auto;
-            object-fit: contain;
-        }
-
-        @media (max-width: 600px) {
-
-            .size-chart-overlay {
-                padding: 12px;
-            }
-
-            .size-chart-box {
-                padding: 18px;
-                width: 100%;
-                max-height: 94vh;
-            }
-
-            .size-chart-header h3 {
-                font-size: 18px;
-            }
-
-            .size-chart-image-wrapper img {
-                max-height: 76vh;
-            }
-
-        }
-
-    `;
-
-
-    document.head.appendChild(
-        style
-    );
-
-}
-
-
-/* =====================================================
-   OPEN PRODUCT MODAL
-===================================================== */
-
-function openProductModal(
-    product
-) {
-
-    if (!productModal) {
-        return;
-    }
-
-
-    selectedProduct =
-        product;
-
-
-    selectedSize =
-        null;
-
-
-    modalQuantity =
-        1;
-
-
-    const name =
-        productModal.querySelector(
-            "#modalProductName"
-        );
-
-
-    const color =
-        productModal.querySelector(
-            "#modalProductColor"
-        );
-
-
-    const oldPrice =
-        productModal.querySelector(
-            "#modalOldPrice"
-        );
-
-
-    const price =
-        productModal.querySelector(
-            "#modalPrice"
-        );
-
-
-    const modalImage =
-        productModal.querySelector(
-            ".modal-image"
-        );
-
-
-    if (name) {
-
-        name.textContent =
-            product.name ||
-            "FIGURE SCRUB";
-
-    }
-
-
-    if (color) {
-
-        color.textContent =
-            product.color ||
-            "Premium Medical Scrub";
-
-    }
-
-
-    if (oldPrice) {
-
-        const old =
-            Number(
-                product.old_price || 0
-            );
-
-
-        const current =
-            Number(
-                product.price || 0
-            );
-
-
-        if (
-            old > current
-        ) {
-
-            oldPrice.textContent =
-                formatPrice(old);
-
-            oldPrice.style.display =
-                "inline";
-
-        } else {
-
-            oldPrice.style.display =
-                "none";
-
-        }
-
-    }
-
-
-    if (price) {
-
-        price.textContent =
-            formatPrice(
-                product.price
-            );
-
-    }
-
-
-    if (modalImage) {
-
-        if (
-            product.image_url
-        ) {
-
-            modalImage.innerHTML =
-
-                '<img ' +
-                    'src="' +
-                        escapeHTML(
-                            product.image_url
-                        ) +
-                    '" ' +
-                    'alt="' +
-                        escapeHTML(
-                            product.name ||
-                            "Figure Scrub"
-                        ) +
-                    '" ' +
-                    'style="width:100%;height:100%;object-fit:cover;">';
-
-        } else {
-
-            modalImage.innerHTML =
-
-                '<div class="product-placeholder">' +
-                    'FIGURE SCRUB' +
-                '</div>';
-
-        }
-
-    }
-
-
-    renderModalSizes(
-        product
-    );
-
-
-    updateSizeChartButton(
-        product
-    );
-
-
-    updateModalQuantity();
-
-
-    productModal.hidden =
-        false;
-
-
-    document.body.style.overflow =
-        "hidden";
-
-}
-
-
-/* =====================================================
-   CLOSE PRODUCT MODAL
-===================================================== */
-
-function closeProductModal() {
-
-    if (!productModal) {
-        return;
-    }
-
-
-    closeSizeChart();
-
-
-    productModal.hidden =
-        true;
-
-
-    document.body.style.overflow =
-        "";
-
-
-    selectedProduct =
-        null;
-
-
-    selectedSize =
-        null;
-
-}
-
-
-/* =====================================================
-   MODAL SIZES
-===================================================== */
-
-function renderModalSizes(
-    product
-) {
-
-    const sizeContainer =
-        productModal?.querySelector(
-            ".size-options"
-        );
-
-
-    if (!sizeContainer) {
-        return;
-    }
-
-
-    sizeContainer.innerHTML =
-        "";
-
-
-    const sizes =
-        normalizeSizes(
-            product.sizes
-        );
-
-
-    if (!sizes.length) {
-
-        const button =
-            document.createElement(
-                "button"
-            );
-
-
-        button.type =
-            "button";
-
-
-        button.className =
-            "selected";
-
-
-        button.dataset.size =
-            "One Size";
-
-
-        button.textContent =
-            "ONE SIZE";
-
-
-        sizeContainer.appendChild(
-            button
-        );
-
-
-        selectedSize =
-            "One Size";
-
-
-        return;
-
-    }
-
-
-    sizes.forEach(
-        function (size, index) {
-
-            const button =
-                document.createElement(
-                    "button"
-                );
-
-
-            button.type =
-                "button";
-
-
-            button.textContent =
-                size;
-
-
-            button.dataset.size =
-                size;
-
-
-            if (index === 0) {
-
-                button.classList.add(
-                    "selected"
-                );
-
-                selectedSize =
-                    size;
-
-            }
-
-
-            button.addEventListener(
-                "click",
-                function () {
-
-                    sizeContainer
-                        .querySelectorAll(
-                            "button"
-                        )
-                        .forEach(
-                            function (btn) {
-
-                                btn.classList.remove(
-                                    "selected"
-                                );
-
-                            }
-                        );
-
-
-                    button.classList.add(
-                        "selected"
-                    );
-
-
-                    selectedSize =
-                        size;
-
-                }
-            );
-
-
-            sizeContainer.appendChild(
-                button
-            );
-
-        }
-    );
-
-}
-
-
-/* =====================================================
-   MODAL QUANTITY
-===================================================== */
-
-function updateModalQuantity() {
-
-    const quantityElement =
-        productModal?.querySelector(
-            "#quantityValue"
-        );
-
-
-    if (quantityElement) {
-
-        quantityElement.textContent =
-            modalQuantity;
-
-    }
-
-
-    const buttons =
-        productModal?.querySelectorAll(
-            ".quantity-selector button"
-        );
-
-
-    if (!buttons) {
-        return;
-    }
-
-
-    buttons.forEach(
-        function (button) {
-
-            button.onclick =
-                function () {
-
-                    if (
-                        !selectedProduct
-                    ) {
-
-                        return;
-
-                    }
-
-
-                    const action =
-                        button.dataset.action ||
-                        button.textContent.trim();
-
-
-                    const stock =
-                        getStock(
-                            selectedProduct
-                        );
-
-
-                    if (
-                        action ===
-                            "plus" ||
-                        action === "+"
-                    ) {
-
-                        if (
-                            modalQuantity <
-                            stock
-                        ) {
-
-                            modalQuantity++;
-
-                        } else {
-
-                            showSiteMessage(
-                                "You cannot add more than available stock."
-                            );
-
-                        }
-
-                    }
-
-
-                    if (
-                        action ===
-                            "minus" ||
-                        action ===
-                            "−" ||
-                        action === "-"
-                    ) {
-
-                        if (
-                            modalQuantity >
-                            1
-                        ) {
-
-                            modalQuantity--;
-
-                        }
-
-                    }
-
-
-                    updateModalQuantity();
-
-                };
-
-        }
-    );
-
-}
-
-
-/* =====================================================
-   GLOBAL ACTIONS
-===================================================== */
-
-function setupGlobalActions() {
-
-    document.addEventListener(
-        "click",
-        function (event) {
-
-            /* =================================================
-               MODAL ADD TO CART
-            ================================================= */
-
-            const modalAdd =
-                event.target.closest(
-                    ".modal-add-cart"
-                );
-
-
-            if (modalAdd) {
-
-                if (
-                    !selectedProduct
-                ) {
-
-                    return;
-
-                }
-
-
-                const sizes =
-                    normalizeSizes(
-                        selectedProduct.sizes
-                    );
-
-
-                if (
-                    sizes.length &&
-                    !selectedSize
-                ) {
-
-                    showSiteMessage(
-                        "Please select a size."
-                    );
-
-                    return;
-
-                }
-
-
-                addToCart(
-                    selectedProduct,
-                    selectedSize,
-                    modalQuantity
-                );
-
-
-                closeProductModal();
-
-                openCartDrawer();
-
-                return;
-
-            }
-
-
-            /* =================================================
-               CART
-            ================================================= */
-
-            const cartButton =
-                event.target.closest(
-                    ".cart-btn, .cart-button, [data-cart-action='open']"
-                );
-
-
-            if (cartButton) {
-
-                openCartDrawer();
-
-                return;
-
-            }
-
-
-            /* =================================================
-               CHECKOUT
-            ================================================= */
-
-            const checkoutButton =
-                event.target.closest(
-                    ".checkout-btn"
-                );
-
-
-            if (checkoutButton) {
-
-                if (!cart.length) {
-
-                    showSiteMessage(
-                        "Your cart is empty."
-                    );
-
-                    return;
-
-                }
-
-
-                window.location.href =
-                    "checkout.html";
-
-            }
-
-        }
-    );
-
-}
-
-
-/* =====================================================
-   ADD TO CART
-===================================================== */
-
-function addToCart(
-    product,
-    size,
-    quantity
-) {
+/* =========================================================
+   PRODUCT IMAGES
+========================================================= */
+
+function getProductImages(product) {
 
     if (!product) {
-        return;
+        return [];
     }
 
-
-    const stock =
-        getStock(product);
-
+    let images = [];
 
     if (
-        stock <= 0
+        Array.isArray(
+            product.image_urls
+        )
     ) {
 
-        showSiteMessage(
-            "This product is out of stock."
-        );
+        images =
+            product.image_urls;
 
-        return;
+    } else if (
+        typeof product.image_urls ===
+        "string"
+    ) {
 
-    }
+        try {
 
-
-    const finalSize =
-        size ||
-        "One Size";
-
-
-    const safeQuantity =
-        Math.max(
-            1,
-            Number(quantity) || 1
-        );
-
-
-    const existingIndex =
-        cart.findIndex(
-            function (item) {
-
-                return (
-                    String(
-                        item.product_id
-                    ) ===
-                    String(
-                        product.id
-                    ) &&
-
-                    String(
-                        item.size
-                    ) ===
-                    String(
-                        finalSize
-                    )
+            const parsed =
+                JSON.parse(
+                    product.image_urls
                 );
 
-            }
-        );
+            if (
+                Array.isArray(parsed)
+            ) {
 
+                images = parsed;
+
+            } else if (
+                typeof parsed ===
+                "string"
+            ) {
+
+                images = [parsed];
+            }
+
+        } catch {
+
+            /*
+             * In case the database contains
+             * a comma-separated string.
+             */
+
+            images =
+                product.image_urls
+                    .split(",")
+                    .map(
+                        image =>
+                            image.trim()
+                    )
+                    .filter(Boolean);
+        }
+    }
 
     if (
-        existingIndex !==
-        -1
+        !images.length &&
+        product.image_url
     ) {
 
-        const newQuantity =
-            Number(
-                cart[
-                    existingIndex
-                ].quantity || 0
-            ) +
-            safeQuantity;
-
-
-        cart[
-            existingIndex
-        ].quantity =
-            Math.min(
-                newQuantity,
-                stock
-            );
-
-    } else {
-
-        cart.push({
-
-            product_id:
-                product.id,
-
-            name:
-                product.name ||
-                "FIGURE SCRUB",
-
-            price:
-                Number(
-                    product.price || 0
-                ),
-
-            image_url:
-                product.image_url ||
-                "",
-
-            color:
-                product.color ||
-                "",
-
-            size:
-                finalSize,
-
-            quantity:
-                Math.min(
-                    safeQuantity,
-                    stock
-                )
-
-        });
-
+        images = [
+            product.image_url
+        ];
     }
 
-
-    saveCart();
-
-    updateCartCount();
-
-
-    showCartNotification(
-        (
-            product.name ||
-            "Product"
-        ) +
-        " added to cart"
-    );
-
+    return images
+        .map(
+            image =>
+                String(image || "")
+                    .trim()
+        )
+        .filter(Boolean);
 }
 
 
-/* =====================================================
-   CART SETUP
-===================================================== */
+function getMainProductImage(product) {
 
-function setupCart() {
-
-    if (!cartDrawer) {
-        return;
-    }
-
-
-    const closeButton =
-        cartDrawer.querySelector(
-            ".cart-close"
+    const images =
+        getProductImages(
+            product
         );
 
-
-    const overlay =
-        cartDrawer.querySelector(
-            ".cart-overlay"
-        );
-
-
-    if (closeButton) {
-
-        closeButton.addEventListener(
-            "click",
-            closeCartDrawer
-        );
-
-    }
-
-
-    if (overlay) {
-
-        overlay.addEventListener(
-            "click",
-            closeCartDrawer
-        );
-
-    }
-
-
-    renderCart();
-
+    return images[0] || "";
 }
 
 
-/* =====================================================
-   OPEN CART
-===================================================== */
+/* =========================================================
+   SIZE HELPERS
+========================================================= */
 
-function openCartDrawer() {
+function normalizeSizes(value) {
 
-    if (!cartDrawer) {
-        return;
+    if (Array.isArray(value)) {
+
+        return value
+            .map(
+                size =>
+                    String(size)
+                        .trim()
+            )
+            .filter(Boolean);
     }
 
+    if (
+        typeof value ===
+        "string"
+    ) {
 
-    cartDrawer.hidden =
-        false;
+        try {
 
+            const parsed =
+                JSON.parse(value);
 
-    document.body.style.overflow =
-        "hidden";
+            if (
+                Array.isArray(parsed)
+            ) {
 
+                return parsed
+                    .map(
+                        size =>
+                            String(size)
+                                .trim()
+                    )
+                    .filter(Boolean);
+            }
 
-    renderCart();
-
-}
-
-
-/* =====================================================
-   CLOSE CART
-===================================================== */
-
-function closeCartDrawer() {
-
-    if (!cartDrawer) {
-        return;
-    }
-
-
-    cartDrawer.hidden =
-        true;
-
-
-    document.body.style.overflow =
-        "";
-
-}
-
-
-/* =====================================================
-   RENDER CART
-===================================================== */
-
-function renderCart() {
-
-    if (!cartDrawer) {
-        return;
-    }
-
-
-    const itemsContainer =
-        cartDrawer.querySelector(
-            ".cart-items"
-        );
-
-
-    if (!itemsContainer) {
-        return;
-    }
-
-
-    if (!cart.length) {
-
-        itemsContainer.innerHTML =
-
-            '<div class="empty-cart">' +
-
-                '<p>' +
-                    'Your cart is currently empty.' +
-                '</p>' +
-
-                '<button ' +
-                    'class="continue-shopping" ' +
-                    'type="button">' +
-
-                    'CONTINUE SHOPPING' +
-
-                '</button>' +
-
-            '</div>';
-
-
-        const continueButton =
-            itemsContainer.querySelector(
-                ".continue-shopping"
-            );
-
-
-        if (continueButton) {
-
-            continueButton.addEventListener(
-                "click",
-                closeCartDrawer
-            );
-
+        } catch {
+            // Continue with comma split.
         }
 
-    } else {
-
-        itemsContainer.innerHTML =
-            "";
-
-
-        cart.forEach(
-            function (item, index) {
-
-                itemsContainer.appendChild(
-                    createCartItem(
-                        item,
-                        index
-                    )
-                );
-
-            }
-        );
-
+        return value
+            .split(",")
+            .map(
+                size =>
+                    size.trim()
+            )
+            .filter(Boolean);
     }
 
-
-    updateCartSubtotal();
-
+    return [];
 }
 
 
-/* =====================================================
-   CART ITEM
-===================================================== */
+/* =========================================================
+   SIZE STOCK
+========================================================= */
 
-function createCartItem(
-    item,
-    index
-) {
+function getSizeStock(product) {
 
-    const element =
-        document.createElement(
-            "div"
-        );
+    if (!product) {
+        return {};
+    }
 
+    let value =
+        product.size_stock;
 
-    element.className =
-        "cart-item";
-
-
-    let imageHTML =
-        '<div class="product-placeholder">' +
-            'FIGURE SCRUB' +
-        '</div>';
-
+    if (!value) {
+        return {};
+    }
 
     if (
-        item.image_url
+        typeof value ===
+        "string"
     ) {
 
-        imageHTML =
+        try {
 
-            '<img ' +
-                'src="' +
-                    escapeHTML(
-                        item.image_url
-                    ) +
-                '" ' +
-                'alt="' +
-                    escapeHTML(
-                        item.name
-                    ) +
-                '" ' +
-                'style="width:100%;height:100%;object-fit:cover;">';
+            value =
+                JSON.parse(value);
 
+        } catch {
+
+            return {};
+        }
     }
-
-
-    const sizeHTML =
-        item.size
-            ? " • " +
-                escapeHTML(
-                    item.size
-                )
-            : "";
-
-
-    element.innerHTML =
-
-        '<div class="cart-item-image">' +
-
-            imageHTML +
-
-        '</div>' +
-
-
-        '<div class="cart-item-info">' +
-
-            '<h3>' +
-                escapeHTML(
-                    item.name
-                ) +
-            '</h3>' +
-
-            '<p>' +
-
-                escapeHTML(
-                    item.color || ""
-                ) +
-
-                sizeHTML +
-
-            '</p>' +
-
-            '<span class="cart-item-price">' +
-                formatPrice(
-                    item.price
-                ) +
-            '</span>' +
-
-
-            '<div class="cart-quantity">' +
-
-                '<button ' +
-                    'type="button" ' +
-                    'data-action="minus">' +
-
-                    '−' +
-
-                '</button>' +
-
-                '<span>' +
-                    Number(
-                        item.quantity || 0
-                    ) +
-                '</span>' +
-
-                '<button ' +
-                    'type="button" ' +
-                    'data-action="plus">' +
-
-                    '+' +
-
-                '</button>' +
-
-            '</div>' +
-
-        '</div>' +
-
-
-        '<button ' +
-            'class="cart-item-remove" ' +
-            'type="button">' +
-
-            'REMOVE' +
-
-        '</button>';
-
-
-    element
-        .querySelectorAll(
-            ".cart-quantity button"
-        )
-        .forEach(
-            function (button) {
-
-                button.addEventListener(
-                    "click",
-                    function () {
-
-                        const action =
-                            button.dataset.action;
-
-
-                        const product =
-                            products.find(
-                                function (
-                                    productItem
-                                ) {
-
-                                    return (
-                                        String(
-                                            productItem.id
-                                        ) ===
-                                        String(
-                                            item.product_id
-                                        )
-                                    );
-
-                                }
-                            );
-
-
-                        const stock =
-                            product
-                                ? getStock(
-                                    product
-                                )
-                                : 0;
-
-
-                        if (
-                            action ===
-                            "plus"
-                        ) {
-
-                            if (
-                                stock <=
-                                Number(
-                                    item.quantity
-                                )
-                            ) {
-
-                                showSiteMessage(
-                                    "You cannot add more than available stock."
-                                );
-
-                                return;
-
-                            }
-
-
-                            item.quantity++;
-
-                        }
-
-
-                        if (
-                            action ===
-                            "minus"
-                        ) {
-
-                            item.quantity--;
-
-
-                            if (
-                                item.quantity <=
-                                0
-                            ) {
-
-                                cart.splice(
-                                    index,
-                                    1
-                                );
-
-                            }
-
-                        }
-
-
-                        saveCart();
-
-                        updateCartCount();
-
-                        renderCart();
-
-                    }
-                );
-
-            }
-        );
-
-
-    const removeButton =
-        element.querySelector(
-            ".cart-item-remove"
-        );
-
-
-    if (removeButton) {
-
-        removeButton.addEventListener(
-            "click",
-            function () {
-
-                cart.splice(
-                    index,
-                    1
-                );
-
-
-                saveCart();
-
-                updateCartCount();
-
-                renderCart();
-
-            }
-        );
-
-    }
-
-
-    return element;
-
-}
-
-
-/* =====================================================
-   CLEAN CART
-===================================================== */
-
-function cleanupCartAgainstProducts() {
-
-    if (!products.length) {
-        return;
-    }
-
-
-    const validIds =
-        new Set(
-            products.map(
-                function (product) {
-
-                    return String(
-                        product.id
-                    );
-
-                }
-            )
-        );
-
-
-    const oldLength =
-        cart.length;
-
-
-    cart =
-        cart.filter(
-            function (item) {
-
-                return validIds.has(
-                    String(
-                        item.product_id
-                    )
-                );
-
-            }
-        );
-
 
     if (
-        cart.length !==
-        oldLength
+        typeof value !==
+        "object" ||
+        Array.isArray(value)
     ) {
 
-        saveCart();
-
-        updateCartCount();
-
-        renderCart();
-
+        return {};
     }
 
+    return value;
 }
 
 
-/* =====================================================
-   CART SUBTOTAL
-===================================================== */
+function hasSizeStockData(product) {
 
-function updateCartSubtotal() {
+    const stock =
+        getSizeStock(product);
 
-    if (!cartDrawer) {
-        return;
-    }
-
-
-    const subtotal =
-        cart.reduce(
-            function (
-                total,
-                item
-            ) {
-
-                return (
-                    total +
-                    Number(
-                        item.price || 0
-                    ) *
-                    Number(
-                        item.quantity || 0
-                    )
-                );
-
-            },
-            0
-        );
-
-
-    const subtotalElement =
-        cartDrawer.querySelector(
-            "#cartSubtotal"
-        );
-
-
-    if (subtotalElement) {
-
-        subtotalElement.textContent =
-            formatPrice(
-                subtotal
-            );
-
-    }
-
+    return (
+        Object.keys(stock)
+            .length > 0
+    );
 }
 
 
-/* =====================================================
-   CART COUNT
-===================================================== */
+function getSizeStockValue(
+    product,
+    size
+) {
 
-function updateCartCount() {
+    const stock =
+        getSizeStock(product);
 
-    const count =
-        cart.reduce(
-            function (
-                total,
-                item
-            ) {
-
-                return (
-                    total +
-                    Number(
-                        item.quantity || 0
-                    )
-                );
-
-            },
-            0
-        );
-
-
-    document
-        .querySelectorAll(
-            ".cart-count"
-        )
-        .forEach(
-            function (element) {
-
-                element.textContent =
-                    count;
-
-            }
-        );
-
-}
-
-
-/* =====================================================
-   SAVE CART
-===================================================== */
-
-function saveCart() {
-
-    try {
-
-        localStorage.setItem(
-            "figureScrubCart",
-            JSON.stringify(
-                cart
+    if (
+        Object.prototype.hasOwnProperty
+            .call(
+                stock,
+                size
             )
+    ) {
+
+        return Math.max(
+            0,
+            Number(
+                stock[size]
+            ) || 0
         );
-
-    } catch (error) {
-
-        console.error(
-            "Cart save error:",
-            error
-        );
-
     }
 
+    return 0;
 }
 
 
-/* =====================================================
-   CART NOTIFICATION
-===================================================== */
-
-function showCartNotification(
-    message
-) {
-
-    const old =
-        document.querySelector(
-            ".cart-notification"
-        );
-
-
-    if (old) {
-        old.remove();
-    }
-
-
-    const notification =
-        document.createElement(
-            "div"
-        );
-
-
-    notification.className =
-        "cart-notification";
-
-
-    notification.innerHTML =
-
-        '<span>' +
-            escapeHTML(
-                message
-            ) +
-        '</span>' +
-
-        '<button ' +
-            'type="button" ' +
-            'aria-label="Close">' +
-
-            '×' +
-
-        '</button>';
-
-
-    document.body.appendChild(
-        notification
-    );
-
-
-    const closeButton =
-        notification.querySelector(
-            "button"
-        );
-
-
-    if (closeButton) {
-
-        closeButton.addEventListener(
-            "click",
-            function () {
-
-                notification.remove();
-
-            }
-        );
-
-    }
-
-
-    setTimeout(
-        function () {
-
-            if (
-                notification.parentNode
-            ) {
-
-                notification.remove();
-
-            }
-
-        },
-        3500
-    );
-
-}
-
-
-/* =====================================================
-   SITE MESSAGE
-===================================================== */
-
-function showSiteMessage(
-    message
-) {
-
-    const old =
-        document.querySelector(
-            ".site-message"
-        );
-
-
-    if (old) {
-        old.remove();
-    }
-
-
-    const messageBox =
-        document.createElement(
-            "div"
-        );
-
-
-    messageBox.className =
-        "site-message";
-
-
-    messageBox.innerHTML =
-
-        '<span>' +
-            escapeHTML(
-                message
-            ) +
-        '</span>' +
-
-        '<button ' +
-            'type="button" ' +
-            'aria-label="Close">' +
-
-            '×' +
-
-        '</button>';
-
-
-    document.body.appendChild(
-        messageBox
-    );
-
-
-    const closeButton =
-        messageBox.querySelector(
-            "button"
-        );
-
-
-    if (closeButton) {
-
-        closeButton.addEventListener(
-            "click",
-            function () {
-
-                messageBox.remove();
-
-            }
-        );
-
-    }
-
-
-    setTimeout(
-        function () {
-
-            if (
-                messageBox.parentNode
-            ) {
-
-                messageBox.remove();
-
-            }
-
-        },
-        3000
-    );
-
-}
-
-
-/* =====================================================
-   NO PRODUCTS
-===================================================== */
-
-function showNoProducts() {
-
-    if (!noProducts) {
-        return;
-    }
-
-
-    noProducts.hidden =
-        false;
-
-}
-
-
-function hideNoProducts() {
-
-    if (!noProducts) {
-        return;
-    }
-
-
-    noProducts.hidden =
-        true;
-
-}
-
-
-/* =====================================================
-   PRODUCT COUNT
-===================================================== */
-
-function updateProductCount(
-    count
-) {
-
-    if (!productCount) {
-        return;
-    }
-
-
-    const span =
-        productCount.querySelector(
-            "span"
-        );
-
-
-    if (span) {
-
-        span.textContent =
-            count +
-            " PRODUCTS";
-
-    } else {
-
-        productCount.textContent =
-            count +
-            " PRODUCTS";
-
-    }
-
-}
-
-
-/* =====================================================
-   STOCK
-===================================================== */
-
-function getStock(
-    product
+function getAvailableStockForSize(
+    product,
+    size
 ) {
 
     if (!product) {
         return 0;
     }
 
+    if (
+        hasSizeStockData(product)
+    ) {
+
+        return getSizeStockValue(
+            product,
+            size
+        );
+    }
+
+    return getStock(
+        product
+    );
+}
+
+
+/* =========================================================
+   TOTAL STOCK
+========================================================= */
+
+function getStock(product) {
+
+    if (!product) {
+        return 0;
+    }
+
+    const sizeStock =
+        getSizeStock(product);
+
+    if (
+        Object.keys(sizeStock)
+            .length > 0
+    ) {
+
+        return Object.values(
+            sizeStock
+        ).reduce(
+            (
+                total,
+                quantity
+            ) =>
+                total +
+                Math.max(
+                    0,
+                    Number(
+                        quantity
+                    ) || 0
+                ),
+            0
+        );
+    }
 
     return Number(
         product.stock ??
         product.stock_quantity ??
         0
-    );
-
+    ) || 0;
 }
 
 
-/* =====================================================
-   NORMALIZE SIZES
-===================================================== */
+/* =========================================================
+   GENDER
+========================================================= */
+function getProductGender(product) {
 
-function normalizeSizes(
-    sizes
-) {
-
-    if (!sizes) {
-        return [];
+    if (!product) {
+        return "both";
     }
 
+    const gender = String(
+        product.gender ??
+        product.Gender ??
+        product.product_gender ??
+        ""
+    )
+        .trim()
+        .toLowerCase();
+
+    /* WOMEN */
+    if (
+        gender === "women" ||
+        gender === "woman" ||
+        gender === "female" ||
+        gender === "girl" ||
+        gender === "girls" ||
+        gender === "ladies" ||
+        gender === "lady" ||
+        gender === "w"
+    ) {
+        return "women";
+    }
+
+    /* MEN */
+    if (
+        gender === "men" ||
+        gender === "man" ||
+        gender === "male" ||
+        gender === "boy" ||
+        gender === "boys" ||
+        gender === "gentlemen" ||
+        gender === "gentleman" ||
+        gender === "m"
+    ) {
+        return "men";
+    }
+
+    /* BOTH / UNISEX */
+    if (
+        gender === "both" ||
+        gender === "unisex" ||
+        gender === "all"
+    ) {
+        return "both";
+    }
+
+    /* FALLBACK: boolean fields */
 
     if (
-        Array.isArray(
-            sizes
-        )
+        product.is_women === true ||
+        product.is_women === "true" ||
+        product.is_women === 1 ||
+        product.is_women === "1"
     ) {
-
-        return sizes
-            .map(
-                String
-            )
-            .map(
-                function (size) {
-
-                    return size.trim();
-
-                }
-            )
-            .filter(
-                Boolean
-            );
-
+        return "women";
     }
-
 
     if (
-        typeof sizes ===
-        "string"
+        product.is_men === true ||
+        product.is_men === "true" ||
+        product.is_men === 1 ||
+        product.is_men === "1"
     ) {
-
-        const trimmed =
-            sizes.trim();
-
-
-        if (
-            trimmed.startsWith("[") &&
-            trimmed.endsWith("]")
-        ) {
-
-            try {
-
-                const parsed =
-                    JSON.parse(
-                        trimmed
-                    );
-
-
-                if (
-                    Array.isArray(
-                        parsed
-                    )
-                ) {
-
-                    return parsed
-                        .map(
-                            String
-                        )
-                        .map(
-                            function (size) {
-
-                                return size.trim();
-
-                            }
-                        )
-                        .filter(
-                            Boolean
-                        );
-
-                }
-
-            } catch (error) {
-
-                console.warn(
-                    "Could not parse sizes:",
-                    error
-                );
-
-            }
-
-        }
-
-
-        return sizes
-            .split(",")
-            .map(
-                function (size) {
-
-                    return size.trim();
-
-                }
-            )
-            .filter(
-                Boolean
-            );
-
+        return "men";
     }
 
-
-    return [];
-
+    return "both";
 }
+/* =========================================================
+   TRUTHY FLAG
+========================================================= */
 
-
-/* =====================================================
-   FORMAT PRICE
-===================================================== */
-
-function formatPrice(
-    price
-) {
-
-    const number =
-        Number(
-            price || 0
-        );
-
+function isTruthyFlag(value) {
 
     return (
-        number.toLocaleString(
-            "en-US"
-        ) +
-        " EGP"
+        value === true ||
+        value === "true" ||
+        value === 1 ||
+        value === "1"
     );
-
 }
 
 
-/* =====================================================
-   COLOR VALUES
-===================================================== */
+/* =========================================================
+   PRICE
+========================================================= */
 
-function getColorValue(
-    color
-) {
+function formatPrice(value) {
 
-    const normalized =
-        String(
-            color || ""
-        )
+    return Number(
+        value || 0
+    ).toLocaleString(
+        "en-EG",
+        {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        }
+    );
+}
+
+
+/* =========================================================
+   COLOR
+========================================================= */
+
+function getColorValue(color) {
+
+    if (!color) {
+        return "#A7A7A7";
+    }
+
+    const value =
+        String(color)
             .trim()
             .toLowerCase();
 
-
     const colors = {
 
-        black: "#171717",
-        white: "#F7F7F5",
-        ivory: "#F3EEE3",
-        cream: "#EEE6D5",
-
-        navy: "#1F2A44",
-        blue: "#547DA7",
-        "baby blue": "#A8C8DC",
-
-        green: "#50665B",
-        "forest green": "#315648",
-        sage: "#9CAF9F",
-        olive: "#737B4D",
-
+        navy: "#172A46",
+        black: "#111111",
         beige: "#C8B8A6",
-        brown: "#765844",
-        mocha: "#9A7761",
-
-        pink: "#D59AAA",
-        rose: "#BC7C8F",
-        blush: "#E7B9C3",
-
-        lavender: "#9B7CAB",
-        purple: "#80658D",
-
-        grey: "#8B8B8B",
-        gray: "#8B8B8B",
-
-        burgundy: "#6E3444",
-        maroon: "#692F3D",
-
-        red: "#B5535E",
-
-        orange: "#C9824A",
-        yellow: "#C9AE58",
-        mustard: "#B59A4A",
-
-        teal: "#4F7C78",
-        turquoise: "#5C9C9C"
-
+        grey: "#A7A7A7",
+        gray: "#A7A7A7",
+        green: "#526B5D",
+        white: "#F5F3EF",
+        cream: "#F5F3EF",
+        brown: "#7A5C46",
+        pink: "#D9A5AE",
+        purple: "#8D759E",
+        blue: "#456A8C",
+        red: "#8C4A4A"
     };
-
-
-    if (
-        colors[
-            normalized
-        ]
-    ) {
-
-        return colors[
-            normalized
-        ];
-
-    }
-
-
-    const arabicColors = {
-
-        "اسود": "#171717",
-
-        "أبيض": "#F7F7F5",
-        "ابيض": "#F7F7F5",
-
-        "كحلي": "#1F2A44",
-
-        "أزرق": "#547DA7",
-        "ازرق": "#547DA7",
-
-        "أخضر": "#50665B",
-        "اخضر": "#50665B",
-
-        "زيتوني": "#737B4D",
-
-        "بيج": "#C8B8A6",
-
-        "بني": "#765844",
-
-        "موف": "#80658D",
-
-        "لافندر": "#9B7CAB",
-
-        "وردي": "#D59AAA",
-
-        "نبيتي": "#6E3444",
-        "عنابي": "#6E3444",
-
-        "أحمر": "#B5535E",
-        "احمر": "#B5535E"
-
-    };
-
-
-    if (
-        arabicColors[
-            normalized
-        ]
-    ) {
-
-        return arabicColors[
-            normalized
-        ];
-
-    }
-
-
-    /* Deterministic fallback */
-
-    let hash = 0;
-
-
-    for (
-        let i = 0;
-        i < normalized.length;
-        i++
-    ) {
-
-        hash =
-            normalized.charCodeAt(i) +
-            (
-                (hash << 5) -
-                hash
-            );
-
-    }
-
-
-    const hue =
-        Math.abs(
-            hash
-        ) % 360;
-
 
     return (
-        "hsl(" +
-        hue +
-        ", 30%, 62%)"
+        colors[value] ||
+        color
     );
-
 }
 
 
-/* =====================================================
+/* =========================================================
    ESCAPE HTML
-===================================================== */
+========================================================= */
 
-function escapeHTML(
-    value
-) {
+function escapeHTML(value) {
 
     return String(
         value ?? ""
@@ -4114,50 +869,3254 @@ function escapeHTML(
             /'/g,
             "&#039;"
         );
-
 }
 
 
-/* =====================================================
+/* =========================================================
+   HOME SECTIONS
+========================================================= */
+
+function renderHomeSections() {
+
+    renderHomeProductSection(
+        "featuredProducts",
+        products.slice(
+            0,
+            3
+        )
+    );
+
+
+    const bestProducts =
+        products.filter(
+            product =>
+                isTruthyFlag(
+                    product.is_best_seller
+                ) ||
+                isTruthyFlag(
+                    product.is_most_ordered
+                )
+        );
+
+    const bestSection =
+        document.getElementById(
+            "bestSellersSection"
+        );
+
+    if (bestSection) {
+
+        if (
+            bestProducts.length
+        ) {
+
+            bestSection.style.display =
+                "";
+
+            renderHomeProductSection(
+                "bestSellersProducts",
+                bestProducts.slice(
+                    0,
+                    3
+                )
+            );
+
+        } else {
+
+            bestSection.style.display =
+                "none";
+        }
+    }
+
+
+    const newProducts =
+        products.filter(
+            product =>
+                isTruthyFlag(
+                    product.is_just_arrived
+                ) ||
+                isTruthyFlag(
+                    product.is_new
+                )
+        );
+
+
+    const newSection =
+        document.getElementById(
+            "newArrivalsSection"
+        );
+
+    if (newSection) {
+
+        if (
+            newProducts.length
+        ) {
+
+            newSection.style.display =
+                "";
+
+            renderHomeProductSection(
+                "newArrivalsProducts",
+                newProducts.slice(
+                    0,
+                    3
+                )
+            );
+
+        } else {
+
+            newSection.style.display =
+                "none";
+        }
+    }
+}
+
+
+/* =========================================================
+   HOME PRODUCT SECTION
+========================================================= */
+
+function renderHomeProductSection(
+    containerId,
+    sectionProducts
+) {
+
+    const container =
+        document.getElementById(
+            containerId
+        );
+
+    if (!container) {
+        return;
+    }
+
+    container.innerHTML =
+        sectionProducts
+            .map(
+                createProductCard
+            )
+            .join("");
+}
+
+
+/* =========================================================
+   PRODUCT CARD
+========================================================= */
+
+function createProductCard(product) {
+
+    const image =
+        getMainProductImage(
+            product
+        );
+
+    const stock =
+        getStock(product);
+
+    const soldOut =
+        stock <= 0;
+
+    const isNew =
+        isTruthyFlag(
+            product.is_new
+        ) ||
+        isTruthyFlag(
+            product.is_just_arrived
+        );
+
+    const isBest =
+        isTruthyFlag(
+            product.is_best_seller
+        ) ||
+        isTruthyFlag(
+            product.is_most_ordered
+        );
+
+    const oldPrice =
+        Number(
+            product.old_price || 0
+        );
+
+    const price =
+        Number(
+            product.price || 0
+        );
+
+    const badge =
+        isNew
+            ? "NEW"
+            : isBest
+                ? "BEST SELLER"
+                : "";
+
+    return `
+
+        <article
+            class="product-card"
+            data-product-id="${escapeHTML(
+                product.id
+            )}"
+        >
+
+            <div
+                class="product-image"
+                data-action="quick-view"
+                data-product-id="${escapeHTML(
+                    product.id
+                )}"
+            >
+
+                ${
+                    image
+                    ?
+                    `
+                    <img
+                        src="${escapeHTML(
+                            image
+                        )}"
+                        alt="${escapeHTML(
+                            product.name
+                        )}"
+                        loading="lazy"
+                    >
+                    `
+                    :
+                    `
+                    <div class="product-placeholder">
+                        Figure Scrub
+                    </div>
+                    `
+                }
+
+                ${
+                    badge
+                    ?
+                    `
+                    <span class="product-badge">
+                        ${badge}
+                    </span>
+                    `
+                    :
+                    ""
+                }
+
+                ${
+                    soldOut
+                    ?
+                    `
+                    <span class="product-sold-out">
+                        SOLD OUT
+                    </span>
+                    `
+                    :
+                    ""
+                }
+
+            </div>
+
+
+            <div class="product-info">
+
+                <div class="product-color-row">
+
+                    <span
+                        class="color-dot"
+                        style="background:${escapeHTML(
+                            getColorValue(
+                                product.color
+                            )
+                        )};">
+                    </span>
+
+                    <span>
+                        ${escapeHTML(
+                            product.color ||
+                            ""
+                        )}
+                    </span>
+
+                </div>
+
+
+                <h3 class="product-name">
+                    ${escapeHTML(
+                        product.name
+                    )}
+                </h3>
+
+
+                <div class="product-price">
+
+                    ${
+                        oldPrice > price
+                        ?
+                        `
+                        <span class="old-price">
+                            ${formatPrice(
+                                oldPrice
+                            )} EGP
+                        </span>
+                        `
+                        :
+                        ""
+                    }
+
+                    <span class="current-price">
+                        ${formatPrice(
+                            price
+                        )} EGP
+                    </span>
+
+                </div>
+
+
+                <div class="product-actions">
+
+                    <button
+                        type="button"
+                        class="quick-view-btn"
+                        data-action="quick-view"
+                        data-product-id="${escapeHTML(
+                            product.id
+                        )}">
+                        QUICK VIEW
+                    </button>
+
+                    <button
+                        type="button"
+                        class="add-to-cart-btn"
+                        data-action="add-product"
+                        data-product-id="${escapeHTML(
+                            product.id
+                        )}"
+                        ${
+                            soldOut
+                            ? "disabled"
+                            : ""
+                        }>
+
+                        ${
+                            soldOut
+                            ?
+                            "SOLD OUT"
+                            :
+                            "ADD TO CART"
+                        }
+
+                    </button>
+
+                </div>
+
+            </div>
+
+        </article>
+    `;
+}
+
+
+/* =========================================================
+   SHOP FILTERS
+========================================================= */
+
+function setupFilters() {
+
+    const filterButtons =
+        document.querySelectorAll(".filter-btn");
+
+    filterButtons.forEach(button => {
+
+        button.addEventListener("click", () => {
+
+            const filter =
+                String(button.dataset.filter || "all")
+                    .trim()
+                    .toLowerCase();
+
+            activeFilter = filter;
+
+            filterButtons.forEach(btn => {
+                btn.classList.remove("active");
+            });
+
+            button.classList.add("active");
+
+            applyFilters();
+        });
+    });
+
+
+    /* =========================================
+       ADVANCED FILTERS
+    ========================================= */
+
+    if (sizeFilter) {
+        sizeFilter.addEventListener("change", applyFilters);
+    }
+
+    if (colorFilter) {
+        colorFilter.addEventListener("change", applyFilters);
+    }
+
+    if (priceFilter) {
+        priceFilter.addEventListener("change", applyFilters);
+    }
+
+
+    /* =========================================
+       RESET
+    ========================================= */
+
+    const resetButton =
+        document.getElementById("resetFilters");
+
+    if (resetButton) {
+
+        resetButton.addEventListener("click", () => {
+
+            activeFilter = "all";
+
+            filterButtons.forEach(btn => {
+                btn.classList.toggle(
+                    "active",
+                    btn.dataset.filter === "all"
+                );
+            });
+
+            if (sizeFilter) {
+                sizeFilter.value = "";
+            }
+
+            if (colorFilter) {
+                colorFilter.value = "";
+            }
+
+            if (priceFilter) {
+                priceFilter.value = "";
+            }
+
+            applyFilters();
+        });
+    }
+}
+
+
+/* =========================================================
+   FILTER NORMALIZATION
+========================================================= */
+
+function normalizeFilter(value) {
+
+    const filter =
+        String(
+            value || "all"
+        )
+            .trim()
+            .toLowerCase();
+
+    if (
+        [
+            "women",
+            "men",
+            "new",
+            "best",
+            "available",
+            "out"
+        ].includes(filter)
+    ) {
+
+        return filter;
+    }
+
+    return "all";
+}
+
+
+/* =========================================================
+   APPLY FILTERS
+========================================================= */
+
+function applyFilters() {
+
+    let result = [...products];
+
+    /* =========================================
+   MAIN FILTER
+========================================= */
+
+if (activeFilter === "women") {
+
+    result = result.filter(product => {
+
+        const gender = getProductGender(product);
+
+        return (
+            gender === "women" ||
+            gender === "both"
+        );
+    });
+
+} else if (activeFilter === "men") {
+
+    result = result.filter(product => {
+
+        const gender = getProductGender(product);
+
+        return (
+            gender === "men" ||
+            gender === "both"
+        );
+    });
+
+} else if (activeFilter === "new") {
+
+    result = result.filter(product =>
+        isTruthyFlag(product.is_new) ||
+        isTruthyFlag(product.is_just_arrived)
+    );
+
+} else if (activeFilter === "best") {
+
+    result = result.filter(product =>
+        isTruthyFlag(product.is_best_seller) ||
+        isTruthyFlag(product.is_most_ordered)
+    );
+
+} else if (activeFilter === "available") {
+
+    result = result.filter(product =>
+        getStock(product) > 0
+    );
+
+} else if (activeFilter === "out") {
+
+    result = result.filter(product =>
+        getStock(product) <= 0
+    );
+}
+    /* =========================================
+       SIZE FILTER
+    ========================================= */
+
+   const selectedSize =
+    sizeFilter?.value?.trim().toLowerCase() || "";
+
+if (
+    selectedSize &&
+    selectedSize !== "all"
+) {
+
+    result = result.filter(product => {
+
+        const sizes =
+            normalizeSizes(product.sizes);
+
+        return sizes.some(size =>
+            String(size)
+                .trim()
+                .toLowerCase() === selectedSize
+        );
+    });
+}
+    /* =========================================
+       COLOR FILTER
+    ========================================= */
+
+    const selectedColor =
+        colorFilter?.value?.trim().toLowerCase() || "";
+
+    if (
+    selectedColor &&
+    selectedColor !== "all"
+) {
+
+    result = result.filter(product => {
+
+        return String(product.color || "")
+            .trim()
+            .toLowerCase() === selectedColor;
+
+    });
+}
+
+    /* =========================================
+       PRICE FILTER
+    ========================================= */
+
+    const selectedPrice =
+        priceFilter?.value?.trim() || "";
+
+    if (selectedPrice) {
+
+        result = result.filter(product => {
+
+            const price = Number(product.price || 0);
+
+            if (selectedPrice === "under-1000") {
+                return price < 1000;
+            }
+
+            if (selectedPrice === "1000-1500") {
+                return price >= 1000 && price <= 1500;
+            }
+
+            if (selectedPrice === "over-1500") {
+                return price > 1500;
+            }
+
+            return true;
+        });
+    }
+
+
+    /* =========================================
+       SAVE + RENDER
+    ========================================= */
+
+    filteredProducts = result;
+
+    renderShopProducts();
+
+    if (productCount) {
+        productCount.textContent = filteredProducts.length;
+    }
+
+    if (noProducts) {
+        noProducts.hidden = filteredProducts.length !== 0;
+    }
+}
+
+
+/* =========================================================
+   DYNAMIC FILTER OPTIONS
+========================================================= */
+
+function populateDynamicFilters() {
+
+    if (colorFilter) {
+
+        const current =
+            colorFilter.value;
+
+        const colors =
+            [
+                ...new Set(
+                    products
+                        .map(
+                            product =>
+                                String(
+                                    product.color ||
+                                    ""
+                                ).trim()
+                        )
+                        .filter(Boolean)
+                )
+            ]
+                .sort();
+
+        colorFilter.innerHTML = `
+            <option value="all">
+                All Colors
+            </option>
+
+            ${
+                colors
+                    .map(
+                        color =>
+                            `
+                            <option
+                                value="${escapeHTML(
+                                    color
+                                )}">
+                                ${escapeHTML(
+                                    color
+                                )}
+                            </option>
+                            `
+                    )
+                    .join("")
+            }
+        `;
+
+        if (
+            colors.includes(current)
+        ) {
+
+            colorFilter.value =
+                current;
+        }
+    }
+
+
+    if (sizeFilter) {
+
+        const current =
+            sizeFilter.value;
+
+        const sizes =
+            [
+                ...new Set(
+                    products
+                        .flatMap(
+                            product =>
+                                normalizeSizes(
+                                    product.sizes
+                                )
+                        )
+                )
+            ]
+                .sort(
+                    (
+                        a,
+                        b
+                    ) =>
+                        String(a)
+                            .localeCompare(
+                                String(b),
+                                undefined,
+                                {
+                                    numeric: true
+                                }
+                            )
+                );
+
+        sizeFilter.innerHTML = `
+            <option value="all">
+                All Sizes
+            </option>
+
+            ${
+                sizes
+                    .map(
+                        size =>
+                            `
+                            <option
+                                value="${escapeHTML(
+                                    size
+                                )}">
+                                ${escapeHTML(
+                                    size
+                                )}
+                            </option>
+                            `
+                    )
+                    .join("")
+            }
+        `;
+
+        if (
+            sizes.includes(current)
+        ) {
+
+            sizeFilter.value =
+                current;
+        }
+    }
+}
+
+/* =========================================================
+   RENDER SHOP - FIXED
+========================================================= */
+
+function renderShopProducts() {
+
+    if (!shopProducts) {
+        console.warn("shopProducts element not found.");
+        return;
+    }
+
+    /*
+     * Make absolutely sure the products container
+     * is visible.
+     */
+    shopProducts.hidden = false;
+    shopProducts.removeAttribute("hidden");
+
+    shopProducts.style.visibility = "visible";
+    shopProducts.style.opacity = "1";
+
+    if (productCount) {
+        productCount.textContent =
+            filteredProducts.length;
+    }
+
+    /*
+     * No products
+     */
+    if (!filteredProducts.length) {
+
+        shopProducts.innerHTML = "";
+
+        if (noProducts) {
+            noProducts.hidden = false;
+            noProducts.style.display = "";
+        }
+
+        return;
+    }
+
+    /*
+     * Products exist
+     */
+    if (noProducts) {
+        noProducts.hidden = true;
+        noProducts.style.display = "none";
+    }
+
+    /*
+     * Render products
+     */
+    shopProducts.innerHTML =
+        filteredProducts
+            .map(product => createProductCard(product))
+            .join("");
+
+    /*
+     * Force the cards to be visible in case
+     * another CSS rule is hiding them.
+     */
+    shopProducts
+        .querySelectorAll(".product-card")
+        .forEach(card => {
+
+            card.hidden = false;
+
+            card.style.visibility = "visible";
+            card.style.opacity = "1";
+        });
+}
+
+/* =========================================================
+   EMPTY PRODUCTS
+========================================================= */
+
+function renderEmptyProducts(
+    message
+) {
+
+    if (!shopProducts) {
+        return;
+    }
+
+    shopProducts.innerHTML = `
+        <div class="empty-products">
+            ${escapeHTML(
+                message
+            )}
+        </div>
+    `;
+}
+
+
+/* =========================================================
+   MODAL
+========================================================= */
+
+function setupModal() {
+
+    if (!productModal) {
+        return;
+    }
+
+
+    productModal.addEventListener(
+        "click",
+        event => {
+
+            if (
+                event.target ===
+                productModal
+            ) {
+
+                closeProductModal();
+            }
+        }
+    );
+
+
+    document
+        .querySelectorAll(
+            "[data-close-modal]"
+        )
+        .forEach(
+            button => {
+
+                button.addEventListener(
+                    "click",
+                    closeProductModal
+                );
+            }
+        );
+
+
+    document
+        .querySelectorAll(
+            ".size-chart-btn"
+        )
+        .forEach(
+            button => {
+
+                button.addEventListener(
+                    "click",
+                    showSizeChart
+                );
+            }
+        );
+
+
+    const decrease =
+        document.getElementById(
+            "decreaseQty"
+        );
+
+    if (decrease) {
+
+        decrease.addEventListener(
+            "click",
+            () => {
+
+                if (
+                    modalQuantity >
+                    1
+                ) {
+
+                    modalQuantity--;
+
+                    updateModalQuantity();
+                }
+            }
+        );
+    }
+
+
+    const increase =
+        document.getElementById(
+            "increaseQty"
+        );
+
+    if (increase) {
+
+        increase.addEventListener(
+            "click",
+            () => {
+
+                const max =
+                    getAvailableStockForSize(
+                        selectedProduct,
+                        selectedSize
+                    );
+
+                if (
+                    modalQuantity <
+                    max
+                ) {
+
+                    modalQuantity++;
+
+                    updateModalQuantity();
+                } else {
+
+                    showNotification(
+                        "Maximum available quantity reached.",
+                        "warning"
+                    );
+                }
+            }
+        );
+    }
+
+
+    const previous =
+        document.getElementById(
+            "modalPrevImage"
+        );
+
+    if (previous) {
+
+        previous.addEventListener(
+            "click",
+            event => {
+
+                event.stopPropagation();
+
+                changeModalImage(
+                    -1
+                );
+            }
+        );
+    }
+
+
+    const next =
+        document.getElementById(
+            "modalNextImage"
+        );
+
+    if (next) {
+
+        next.addEventListener(
+            "click",
+            event => {
+
+                event.stopPropagation();
+
+                changeModalImage(
+                    1
+                );
+            }
+        );
+    }
+}
+
+
+/* =========================================================
+   OPEN PRODUCT MODAL
+========================================================= */
+
+function openProductModal(
+    product
+) {
+
+    if (!productModal) {
+        return;
+    }
+
+    selectedProduct =
+        product;
+
+    selectedSize =
+        null;
+
+    modalQuantity =
+        1;
+
+
+    const name =
+        document.getElementById(
+            "modalProductName"
+        );
+
+    const color =
+        document.getElementById(
+            "modalProductColor"
+        );
+
+    const oldPrice =
+        document.getElementById(
+            "modalOldPrice"
+        );
+
+    const price =
+        document.getElementById(
+            "modalPrice"
+        );
+
+
+    if (name) {
+
+        name.textContent =
+            product.name ||
+            "Product";
+    }
+
+
+    if (color) {
+
+        color.textContent =
+            product.color ||
+            "";
+    }
+
+
+    const old =
+        Number(
+            product.old_price ||
+            0
+        );
+
+    const current =
+        Number(
+            product.price ||
+            0
+        );
+
+
+    if (oldPrice) {
+
+        if (
+            old >
+            current
+        ) {
+
+            oldPrice.textContent =
+                `${formatPrice(
+                    old
+                )} EGP`;
+
+            oldPrice.style.display =
+                "";
+
+        } else {
+
+            oldPrice.textContent =
+                "";
+
+            oldPrice.style.display =
+                "none";
+        }
+    }
+
+
+    if (price) {
+
+        price.textContent =
+            `${formatPrice(
+                current
+            )} EGP`;
+    }
+
+
+    renderModalImages(
+        product
+    );
+
+    renderModalDescription(
+        product
+    );
+
+    renderModalSizes(
+        product
+    );
+
+    updateSizeChartButton(
+        product
+    );
+
+    updateModalQuantity();
+
+
+    productModal.classList.add(
+        "active"
+    );
+
+    document.body.classList.add(
+        "modal-open"
+    );
+}
+
+
+/* =========================================================
+   MODAL IMAGES
+========================================================= */
+
+function renderModalImages(product) {
+
+    currentModalImages = getProductImages(product);
+    currentModalImageIndex = 0;
+
+    const imageContainer =
+        productModal?.querySelector(".modal-image");
+
+    if (!imageContainer) {
+        return;
+    }
+
+    if (!currentModalImages.length) {
+
+        imageContainer.innerHTML = `
+            <div class="product-placeholder">
+                FIGURE SCRUB
+            </div>
+        `;
+
+        return;
+    }
+
+    imageContainer.innerHTML = `
+
+        <div class="modern-product-gallery">
+
+            ${
+                currentModalImages.length > 1
+                ?
+                `
+                <div class="modern-gallery-thumbs">
+
+                    ${currentModalImages
+                        .map(
+                            (image, index) => `
+                                <button
+                                    type="button"
+                                    class="modern-gallery-thumb ${
+                                        index === 0
+                                            ? "active"
+                                            : ""
+                                    }"
+                                    data-modal-image-index="${index}"
+                                    aria-label="View image ${index + 1}"
+                                >
+                                    <img
+                                        src="${escapeHTML(image)}"
+                                        alt=""
+                                    >
+                                </button>
+                            `
+                        )
+                        .join("")
+                    }
+
+                </div>
+                `
+                :
+                ""
+            }
+
+
+            <div class="modern-gallery-main">
+
+                <img
+                    id="modalMainImage"
+                    class="modern-main-image"
+                    src="${escapeHTML(
+                        currentModalImages[0]
+                    )}"
+                    alt="${escapeHTML(
+                        product.name || "Figure Scrub"
+                    )}"
+                >
+
+                ${
+                    currentModalImages.length > 1
+                    ?
+                    `
+                    <div class="modern-gallery-counter">
+                        <span id="modalCurrentImage">
+                            01
+                        </span>
+
+                        <span class="modern-gallery-line"></span>
+
+                        <span>
+                            ${String(
+                                currentModalImages.length
+                            ).padStart(2, "0")}
+                        </span>
+                    </div>
+                    `
+                    :
+                    ""
+                }
+
+            </div>
+
+        </div>
+    `;
+
+
+    /*
+     * Thumbnail click
+     */
+
+    imageContainer
+        .querySelectorAll(
+            "[data-modal-image-index]"
+        )
+        .forEach(
+            thumbnail => {
+
+                thumbnail.addEventListener(
+                    "click",
+                    event => {
+
+                        event.preventDefault();
+                        event.stopPropagation();
+
+                        const index =
+                            Number(
+                                thumbnail.dataset
+                                    .modalImageIndex
+                            );
+
+                        setModalImage(index);
+                    }
+                );
+            }
+        );
+
+
+    /*
+     * Mobile swipe
+     */
+
+    const mainImage =
+        imageContainer.querySelector(
+            ".modern-gallery-main"
+        );
+
+    if (mainImage) {
+
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        mainImage.addEventListener(
+            "touchstart",
+            event => {
+
+                touchStartX =
+                    event.changedTouches[0].screenX;
+            },
+            {
+                passive: true
+            }
+        );
+
+        mainImage.addEventListener(
+            "touchend",
+            event => {
+
+                touchEndX =
+                    event.changedTouches[0].screenX;
+
+                const difference =
+                    touchStartX -
+                    touchEndX;
+
+                /*
+                 * Swipe left
+                 */
+
+                if (difference > 50) {
+
+                    changeModalImage(1);
+                }
+
+                /*
+                 * Swipe right
+                 */
+
+                if (difference < -50) {
+
+                    changeModalImage(-1);
+                }
+            },
+            {
+                passive: true
+            }
+        );
+    }
+}
+
+
+/* =========================================================
+   CHANGE MODAL IMAGE
+========================================================= */
+
+function changeModalImage(
+    direction
+) {
+
+    if (
+        currentModalImages.length <=
+        1
+    ) {
+
+        return;
+    }
+
+    let nextIndex =
+        currentModalImageIndex +
+        direction;
+
+
+    if (
+        nextIndex < 0
+    ) {
+
+        nextIndex =
+            currentModalImages.length -
+            1;
+    }
+
+
+    if (
+        nextIndex >=
+        currentModalImages.length
+    ) {
+
+        nextIndex = 0;
+    }
+
+
+    setModalImage(
+        nextIndex
+    );
+}
+
+
+/* =========================================================
+   SET MODAL IMAGE
+========================================================= */
+
+function setModalImage(index) {
+
+    if (!currentModalImages[index]) {
+        return;
+    }
+
+    currentModalImageIndex = index;
+
+    const mainImage =
+        document.getElementById(
+            "modalMainImage"
+        );
+
+    if (mainImage) {
+
+        /*
+         * Small fade effect
+         */
+
+        mainImage.classList.add(
+            "changing"
+        );
+
+        setTimeout(() => {
+
+            mainImage.src =
+                currentModalImages[index];
+
+            mainImage.classList.remove(
+                "changing"
+            );
+
+        }, 120);
+    }
+
+
+    /*
+     * Active thumbnail
+     */
+
+    document
+        .querySelectorAll(
+            ".modern-gallery-thumb"
+        )
+        .forEach(
+            thumbnail => {
+
+                thumbnail.classList.toggle(
+                    "active",
+                    Number(
+                        thumbnail.dataset
+                            .modalImageIndex
+                    ) === index
+                );
+            }
+        );
+
+
+    /*
+     * Update counter
+     */
+
+    const currentImage =
+        document.getElementById(
+            "modalCurrentImage"
+        );
+
+    if (currentImage) {
+
+        currentImage.textContent =
+            String(
+                index + 1
+            ).padStart(
+                2,
+                "0"
+            );
+    }
+}
+
+/* =========================================================
+   DESCRIPTION
+========================================================= */
+
+function renderModalDescription(
+    product
+) {
+
+    let description =
+        document.getElementById(
+            "modalProductDescription"
+        );
+
+
+    /*
+     * Your current shop.html does not have
+     * a description element yet.
+     *
+     * So we create one automatically
+     * inside the modal details area.
+     */
+
+    if (!description) {
+
+        const details =
+            productModal?.querySelector(
+                ".modal-details"
+            ) ||
+            productModal?.querySelector(
+                ".modal-content"
+            );
+
+
+        if (
+            details
+        ) {
+
+            description =
+                document.createElement(
+                    "div"
+                );
+
+            description.id =
+                "modalProductDescription";
+
+            description.className =
+                "modal-product-description";
+
+
+            const price =
+                document.getElementById(
+                    "modalPrice"
+                );
+
+
+            if (
+                price?.parentElement
+            ) {
+
+                price.parentElement
+                    .insertAdjacentElement(
+                        "afterend",
+                        description
+                    );
+
+            } else {
+
+                details.appendChild(
+                    description
+                );
+            }
+        }
+    }
+
+
+    if (!description) {
+        return;
+    }
+
+
+    const text =
+        String(
+            product.description ||
+            ""
+        ).trim();
+
+
+    if (!text) {
+
+        description.innerHTML =
+            "";
+
+        description.style.display =
+            "none";
+
+        return;
+    }
+
+
+    description.innerHTML = `
+        <div class="description-title">
+            Description
+        </div>
+
+        <div class="description-text">
+            ${escapeHTML(
+                text
+            ).replace(
+                /\n/g,
+                "<br>"
+            )}
+        </div>
+    `;
+
+    description.style.display =
+        "";
+}
+
+
+/* =========================================================
+   MODAL SIZES
+========================================================= */
+
+function renderModalSizes(
+    product
+) {
+
+    const container =
+        productModal?.querySelector(
+            ".size-options"
+        );
+
+    if (!container) {
+        return;
+    }
+
+
+    const sizes =
+        normalizeSizes(
+            product.sizes
+        );
+
+
+    if (!sizes.length) {
+
+        container.innerHTML =
+            "";
+
+        selectedSize =
+            null;
+
+        return;
+    }
+
+
+    const hasStock =
+        hasSizeStockData(
+            product
+        );
+
+
+    container.innerHTML =
+        sizes
+            .map(
+                size => {
+
+                    const stock =
+                        hasStock
+                        ?
+                        getSizeStockValue(
+                            product,
+                            size
+                        )
+                        :
+                        getStock(
+                            product
+                        );
+
+
+                    const soldOut =
+                        stock <= 0;
+
+
+                    return `
+
+                        <button
+                            type="button"
+                            class="size-btn ${
+                                soldOut
+                                ? "sold-out"
+                                : ""
+                            }"
+                            data-size="${escapeHTML(
+                                size
+                            )}"
+                            ${
+                                soldOut
+                                ? "disabled"
+                                : ""
+                            }>
+
+                            <span class="size-name">
+                                ${escapeHTML(
+                                    size
+                                )}
+                            </span>
+
+                            ${
+                                soldOut
+                                ?
+                                `
+                                <span class="size-sold-label">
+                                    SOLD OUT
+                                </span>
+                                `
+                                :
+                                ""
+                            }
+
+                        </button>
+
+                    `;
+                }
+            )
+            .join("");
+
+
+    const available =
+        sizes.filter(
+            size =>
+                (
+                    hasStock
+                    ?
+                    getSizeStockValue(
+                        product,
+                        size
+                    )
+                    :
+                    getStock(
+                        product
+                    )
+                ) > 0
+        );
+
+
+    /*
+     * Automatically select the first
+     * available size.
+     */
+
+    if (
+        available.length
+    ) {
+
+        selectedSize =
+            available[0];
+
+        const firstButton =
+            container.querySelector(
+                `[data-size="${CSS.escape(
+                    selectedSize
+                )}"]`
+            );
+
+        if (firstButton) {
+
+            firstButton.classList.add(
+                "active"
+            );
+        }
+
+    } else {
+
+        selectedSize =
+            null;
+    }
+
+
+    container
+        .querySelectorAll(
+            ".size-btn:not(:disabled)"
+        )
+        .forEach(
+            button => {
+
+                button.addEventListener(
+                    "click",
+                    () => {
+
+                        selectedSize =
+                            button.dataset.size;
+
+                        modalQuantity =
+                            1;
+
+                        container
+                            .querySelectorAll(
+                                ".size-btn"
+                            )
+                            .forEach(
+                                item =>
+                                    item.classList.remove(
+                                        "active"
+                                    )
+                            );
+
+                        button.classList.add(
+                            "active"
+                        );
+
+                        updateModalQuantity();
+                    }
+                );
+            }
+        );
+}
+
+
+/* =========================================================
+   MODAL QUANTITY
+========================================================= */
+
+function updateModalQuantity() {
+
+    const value =
+        document.getElementById(
+            "quantityValue"
+        );
+
+    if (value) {
+
+        value.textContent =
+            modalQuantity;
+    }
+
+
+    const addButton =
+        document.querySelector(
+            ".modal-add-cart"
+        );
+
+
+    if (!addButton) {
+        return;
+    }
+
+
+    if (!selectedProduct) {
+
+        addButton.disabled =
+            true;
+
+        return;
+    }
+
+
+    const stock =
+        selectedSize
+        ?
+        getAvailableStockForSize(
+            selectedProduct,
+            selectedSize
+        )
+        :
+        getStock(
+            selectedProduct
+        );
+
+
+    addButton.disabled =
+        stock <= 0 ||
+        (
+            normalizeSizes(
+                selectedProduct.sizes
+            ).length > 0 &&
+            !selectedSize
+        );
+
+
+    if (
+        stock > 0 &&
+        modalQuantity > stock
+    ) {
+
+        modalQuantity =
+            stock;
+
+        if (value) {
+
+            value.textContent =
+                modalQuantity;
+        }
+    }
+}
+
+
+/* =========================================================
+   SIZE CHART
+========================================================= */
+
+function updateSizeChartButton(
+    product
+) {
+
+    const buttons =
+        document.querySelectorAll(
+            ".size-chart-btn"
+        );
+
+    buttons.forEach(
+        button => {
+
+            if (
+                product.size_chart_url
+            ) {
+
+                button.style.display =
+                    "";
+
+                button.dataset.chartUrl =
+                    product.size_chart_url;
+
+            } else {
+
+                button.style.display =
+                    "none";
+            }
+        }
+    );
+}
+
+
+function showSizeChart(
+    event
+) {
+
+    const button =
+        event.currentTarget;
+
+    const url =
+        button.dataset.chartUrl;
+
+    if (!url) {
+        return;
+    }
+
+
+    let overlay =
+        document.getElementById(
+            "sizeChartModal"
+        );
+
+
+    if (!overlay) {
+
+        overlay =
+            document.createElement(
+                "div"
+            );
+
+        overlay.id =
+            "sizeChartModal";
+
+        overlay.className =
+            "modal-overlay";
+
+
+        overlay.innerHTML = `
+
+            <div class="size-chart-modal-content">
+
+                <button
+                    type="button"
+                    class="modal-close"
+                    data-close-size-chart>
+                    ×
+                </button>
+
+                <img
+                    id="sizeChartModalImage"
+                    src=""
+                    alt="Size Chart"
+                >
+
+            </div>
+
+        `;
+
+
+        document.body.appendChild(
+            overlay
+        );
+
+
+        overlay.addEventListener(
+            "click",
+            event => {
+
+                if (
+                    event.target ===
+                    overlay ||
+                    event.target.closest(
+                        "[data-close-size-chart]"
+                    )
+                ) {
+
+                    overlay.classList.remove(
+                        "active"
+                    );
+                }
+            }
+        );
+    }
+
+
+    const image =
+        document.getElementById(
+            "sizeChartModalImage"
+        );
+
+    if (image) {
+
+        image.src =
+            url;
+    }
+
+
+    overlay.classList.add(
+        "active"
+    );
+}
+
+
+/* =========================================================
+   CLOSE PRODUCT MODAL
+========================================================= */
+
+function closeProductModal() {
+
+    if (!productModal) {
+        return;
+    }
+
+    productModal.classList.remove(
+        "active"
+    );
+
+    document.body.classList.remove(
+        "modal-open"
+    );
+
+    selectedProduct =
+        null;
+
+    selectedSize =
+        null;
+
+    modalQuantity =
+        1;
+}
+
+
+/* =========================================================
+   GLOBAL ACTIONS
+========================================================= */
+
+function setupGlobalActions() {
+
+    document.addEventListener(
+        "click",
+        event => {
+
+            const action =
+                event.target.closest(
+                    "[data-action]"
+                );
+
+            if (!action) {
+                return;
+            }
+
+
+            const type =
+                action.dataset.action;
+
+
+            if (
+                type ===
+                "quick-view"
+            ) {
+
+                const product =
+                    findProduct(
+                        action.dataset.productId
+                    );
+
+                if (product) {
+
+                    openProductModal(
+                        product
+                    );
+                }
+
+                return;
+            }
+
+
+            if (
+                type ===
+                "add-product"
+            ) {
+
+                const product =
+                    findProduct(
+                        action.dataset.productId
+                    );
+
+                if (product) {
+
+                    openProductModal(
+                        product
+                    );
+                }
+
+                return;
+            }
+
+
+            if (
+                type ===
+                "open"
+            ) {
+
+                if (
+                    action.dataset.cartAction ===
+                    "open"
+                ) {
+
+                    openCart();
+                }
+
+                return;
+            }
+        }
+    );
+
+
+    document
+        .querySelectorAll(
+            ".modal-add-cart"
+        )
+        .forEach(
+            button => {
+
+                button.addEventListener(
+                    "click",
+                    () => {
+
+                        if (
+                            selectedProduct
+                        ) {
+
+                            addToCart(
+                                selectedProduct,
+                                selectedSize,
+                                modalQuantity
+                            );
+                        }
+                    }
+                );
+            }
+        );
+
+
+    /*
+     * Some pages have cart buttons
+     * without data-cart-action.
+     */
+
+    document
+        .querySelectorAll(
+            ".cart-btn"
+        )
+        .forEach(
+            button => {
+
+                button.addEventListener(
+                    "click",
+                    event => {
+
+                        event.preventDefault();
+
+                        openCart();
+                    }
+                );
+            }
+        );
+
+
+    document
+        .querySelectorAll(
+            "[data-view-more]"
+        )
+        .forEach(
+            button => {
+
+                button.addEventListener(
+                    "click",
+                    () => {
+
+                        window.location.href =
+                            "shop.html";
+                    }
+                );
+            }
+        );
+}
+
+
+/* =========================================================
+   FIND PRODUCT
+========================================================= */
+
+function findProduct(
+    id
+) {
+
+    return products.find(
+        product =>
+            String(
+                product.id
+            ) ===
+            String(id)
+    );
+}
+
+
+/* =========================================================
+   ADD TO CART
+========================================================= */
+
+function addToCart(
+    product,
+    size,
+    quantity = 1
+) {
+
+    if (!product) {
+        return;
+    }
+
+
+    const sizes =
+        normalizeSizes(
+            product.sizes
+        );
+
+
+    if (
+        sizes.length &&
+        !size
+    ) {
+
+        showNotification(
+            "Please select a size.",
+            "warning"
+        );
+
+        return;
+    }
+
+
+    const availableStock =
+        size
+        ?
+        getAvailableStockForSize(
+            product,
+            size
+        )
+        :
+        getStock(
+            product
+        );
+
+
+    if (
+        availableStock <= 0
+    ) {
+
+        showNotification(
+            "This product is sold out.",
+            "error"
+        );
+
+        return;
+    }
+
+
+    quantity =
+        Math.max(
+            1,
+            Number(
+                quantity
+            ) || 1
+        );
+
+
+    if (
+        quantity >
+        availableStock
+    ) {
+
+        showNotification(
+            `Only ${availableStock} available.`,
+            "warning"
+        );
+
+        quantity =
+            availableStock;
+    }
+
+
+    const existing =
+        cart.find(
+            item =>
+                String(
+                    item.productId
+                ) ===
+                String(
+                    product.id
+                ) &&
+                String(
+                    item.size || ""
+                ) ===
+                String(
+                    size || ""
+                )
+        );
+
+
+    if (existing) {
+
+        const newQuantity =
+            Number(
+                existing.quantity
+            ) +
+            quantity;
+
+
+        if (
+            newQuantity >
+            availableStock
+        ) {
+
+            existing.quantity =
+                availableStock;
+
+        } else {
+
+            existing.quantity =
+                newQuantity;
+        }
+
+    } else {
+
+        cart.push({
+
+            productId:
+                product.id,
+
+            name:
+                product.name,
+
+            price:
+                Number(
+                    product.price || 0
+                ),
+
+            oldPrice:
+                Number(
+                    product.old_price || 0
+                ),
+
+            image:
+                getMainProductImage(
+                    product
+                ),
+
+            color:
+                product.color ||
+                "",
+
+            size:
+                size ||
+                "",
+
+            quantity:
+                quantity
+        });
+    }
+
+
+    saveCart();
+
+    renderCart();
+
+    showNotification(
+        "Added to cart successfully.",
+        "success"
+    );
+
+
+    closeProductModal();
+}
+
+
+/* =========================================================
+   CART
+========================================================= */
+
+function setupCart() {
+
+    const close =
+        document.querySelector(
+            "[data-cart-action='close']"
+        );
+
+    if (close) {
+
+        close.addEventListener(
+            "click",
+            closeCart
+        );
+    }
+
+
+    if (cartDrawer) {
+
+        cartDrawer.addEventListener(
+            "click",
+            event => {
+
+                if (
+                    event.target ===
+                    cartDrawer
+                ) {
+
+                    closeCart();
+                }
+            }
+        );
+    }
+
+
+    document
+        .querySelectorAll(
+            "[data-cart-action='checkout']"
+        )
+        .forEach(
+            button => {
+
+                button.addEventListener(
+                    "click",
+                    handleCheckout
+                );
+            }
+        );
+
+
+    renderCart();
+}
+
+
+function openCart() {
+
+    if (!cartDrawer) {
+        return;
+    }
+
+    renderCart();
+
+    cartDrawer.classList.add(
+        "active"
+    );
+
+    document.body.classList.add(
+        "cart-open"
+    );
+}
+
+
+function closeCart() {
+
+    if (!cartDrawer) {
+        return;
+    }
+
+    cartDrawer.classList.remove(
+        "active"
+    );
+
+    document.body.classList.remove(
+        "cart-open"
+    );
+}
+
+
+/* =========================================================
+   RENDER CART
+========================================================= */
+
+function renderCart() {
+
+    const container =
+        document.getElementById(
+            "cartItems"
+        );
+
+    if (!container) {
+        return;
+    }
+
+
+    if (!cart.length) {
+
+        container.innerHTML = `
+            <div class="cart-empty">
+                <p>Your cart is empty.</p>
+                <button
+                    type="button"
+                    class="continue-shopping"
+                    data-cart-action="close">
+                    Continue Shopping
+                </button>
+            </div>
+        `;
+
+        updateCartSubtotal();
+
+        return;
+    }
+
+
+    container.innerHTML =
+        cart
+            .map(
+                createCartItem
+            )
+            .join("");
+
+
+    updateCartSubtotal();
+}
+
+
+/* =========================================================
+   CART ITEM
+========================================================= */
+
+function createCartItem(
+    item,
+    index
+) {
+
+    const product =
+        findProduct(
+            item.productId
+        );
+
+
+    const image =
+        item.image ||
+        getMainProductImage(
+            product
+        );
+
+
+    const availableStock =
+        product
+        ?
+        (
+            item.size
+            ?
+            getAvailableStockForSize(
+                product,
+                item.size
+            )
+            :
+            getStock(
+                product
+            )
+        )
+        :
+        Number(
+            item.quantity || 0
+        );
+
+
+    return `
+
+        <div
+            class="cart-item"
+            data-cart-index="${index}"
+        >
+
+            ${
+                image
+                ?
+                `
+                <img
+                    class="cart-item-image"
+                    src="${escapeHTML(
+                        image
+                    )}"
+                    alt="${escapeHTML(
+                        item.name
+                    )}"
+                >
+                `
+                :
+                `
+                <div class="cart-item-image product-placeholder">
+                    FS
+                </div>
+                `
+            }
+
+
+            <div class="cart-item-info">
+
+                <h4>
+                    ${escapeHTML(
+                        item.name
+                    )}
+                </h4>
+
+
+                ${
+                    item.color
+                    ?
+                    `
+                    <span>
+                        ${escapeHTML(
+                            item.color
+                        )}
+                    </span>
+                    `
+                    :
+                    ""
+                }
+
+
+                ${
+                    item.size
+                    ?
+                    `
+                    <span>
+                        Size:
+                        ${escapeHTML(
+                            item.size
+                        )}
+                    </span>
+                    `
+                    :
+                    ""
+                }
+
+
+                <strong>
+                    ${formatPrice(
+                        item.price
+                    )} EGP
+                </strong>
+
+
+                <div class="cart-item-controls">
+
+                    <button
+                        type="button"
+                        data-cart-change="decrease"
+                        data-cart-index="${index}">
+                        −
+                    </button>
+
+
+                    <span>
+                        ${item.quantity}
+                    </span>
+
+
+                    <button
+                        type="button"
+                        data-cart-change="increase"
+                        data-cart-index="${index}"
+                        ${
+                            item.quantity >=
+                            availableStock
+                            ? "disabled"
+                            : ""
+                        }>
+                        +
+                    </button>
+
+
+                    <button
+                        type="button"
+                        class="cart-remove"
+                        data-cart-change="remove"
+                        data-cart-index="${index}">
+                        Remove
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+    `;
+}
+
+
+/* =========================================================
+   CART EVENTS
+========================================================= */
+
+document.addEventListener(
+    "click",
+    event => {
+
+        const button =
+            event.target.closest(
+                "[data-cart-change]"
+            );
+
+        if (!button) {
+            return;
+        }
+
+
+        const index =
+            Number(
+                button.dataset.cartIndex
+            );
+
+
+        if (
+            !cart[index]
+        ) {
+            return;
+        }
+
+
+        const action =
+            button.dataset.cartChange;
+
+
+        if (
+            action ===
+            "remove"
+        ) {
+
+            cart.splice(
+                index,
+                1
+            );
+
+        } else if (
+            action ===
+            "increase"
+        ) {
+
+            const item =
+                cart[index];
+
+            const product =
+                findProduct(
+                    item.productId
+                );
+
+
+            const max =
+                product
+                ?
+                (
+                    item.size
+                    ?
+                    getAvailableStockForSize(
+                        product,
+                        item.size
+                    )
+                    :
+                    getStock(
+                        product
+                    )
+                )
+                :
+                Infinity;
+
+
+            if (
+                item.quantity <
+                max
+            ) {
+
+                item.quantity++;
+
+            } else {
+
+                showNotification(
+                    "No more stock available.",
+                    "warning"
+                );
+            }
+
+        } else if (
+            action ===
+            "decrease"
+        ) {
+
+            cart[index].quantity--;
+
+            if (
+                cart[index].quantity <=
+                0
+            ) {
+
+                cart.splice(
+                    index,
+                    1
+                );
+            }
+        }
+
+
+        saveCart();
+
+        renderCart();
+    }
+);
+
+
+/* =========================================================
+   UPDATE CART SUBTOTAL
+========================================================= */
+
+function updateCartSubtotal() {
+
+    const subtotal =
+        cart.reduce(
+            (
+                total,
+                item
+            ) =>
+                total +
+                (
+                    Number(
+                        item.price || 0
+                    ) *
+                    Number(
+                        item.quantity || 0
+                    )
+                ),
+            0
+        );
+
+
+    document
+        .querySelectorAll(
+            "#cartSubtotal, .cart-subtotal"
+        )
+        .forEach(
+            element => {
+
+                element.textContent =
+                    `${formatPrice(
+                        subtotal
+                    )} EGP`;
+            }
+        );
+}
+
+
+/* =========================================================
+   CLEAN CART
+========================================================= */
+
+function cleanupCartAgainstProducts() {
+
+    if (!Array.isArray(cart)) {
+        cart = [];
+    }
+
+
+    cart =
+        cart.filter(
+            item => {
+
+                const product =
+                    findProduct(
+                        item.productId
+                    );
+
+                if (!product) {
+                    return false;
+                }
+
+
+                const stock =
+                    item.size
+                    ?
+                    getAvailableStockForSize(
+                        product,
+                        item.size
+                    )
+                    :
+                    getStock(
+                        product
+                    );
+
+
+                if (
+                    stock <= 0
+                ) {
+                    return false;
+                }
+
+
+                if (
+                    Number(
+                        item.quantity
+                    ) >
+                    stock
+                ) {
+
+                    item.quantity =
+                        stock;
+                }
+
+
+                item.price =
+                    Number(
+                        product.price ||
+                        item.price ||
+                        0
+                    );
+
+
+                item.name =
+                    product.name ||
+                    item.name;
+
+
+                item.color =
+                    product.color ||
+                    item.color;
+
+
+                const mainImage =
+                    getMainProductImage(
+                        product
+                    );
+
+
+                if (
+                    mainImage
+                ) {
+
+                    item.image =
+                        mainImage;
+                }
+
+
+                return (
+                    item.quantity >
+                    0
+                );
+            }
+        );
+
+
+    saveCart();
+
+    updateCartCount();
+
+    renderCart();
+}
+
+
+/* =========================================================
+   CHECKOUT
+========================================================= */
+
+function handleCheckout() {
+
+    if (!cart.length) {
+
+        showNotification(
+            "Your cart is empty.",
+            "warning"
+        );
+
+        return;
+    }
+
+
+    /*
+     * If you already have a checkout page,
+     * change this filename only.
+     */
+
+    window.location.href =
+        "checkout.html";
+}
+
+
+/* =========================================================
+   NOTIFICATIONS
+========================================================= */
+
+function showNotification(
+    message,
+    type = "success"
+) {
+
+    let notification =
+        document.getElementById(
+            "figureScrubNotification"
+        );
+
+
+    if (!notification) {
+
+        notification =
+            document.createElement(
+                "div"
+            );
+
+        notification.id =
+            "figureScrubNotification";
+
+        notification.className =
+            "figure-scrub-notification";
+
+
+        document.body.appendChild(
+            notification
+        );
+    }
+
+
+    notification.className =
+        `figure-scrub-notification ${type}`;
+
+
+    notification.textContent =
+        message;
+
+
+    requestAnimationFrame(
+        () => {
+
+            notification.classList.add(
+                "show"
+            );
+        }
+    );
+
+
+    clearTimeout(
+        notification._timeout
+    );
+
+
+    notification._timeout =
+        setTimeout(
+            () => {
+
+                notification.classList.remove(
+                    "show"
+                );
+
+            },
+            3500
+        );
+}
+
+
+/* =========================================================
+   NEWSLETTER
+========================================================= */
+
+function setupNewsletter() {
+
+    const form =
+        document.getElementById(
+            "newsletterForm"
+        );
+
+    if (!form) {
+        return;
+    }
+
+
+    /*
+     * index.html already contains
+     * its own newsletter handler.
+     *
+     * Do not attach another competing
+     * handler when that inline handler
+     * is present.
+     */
+
+    if (
+        form.dataset.newsletterHandled ===
+        "true"
+    ) {
+
+        return;
+    }
+
+
+    form.addEventListener(
+        "submit",
+        async event => {
+
+            event.preventDefault();
+
+            const input =
+                document.getElementById(
+                    "newsletterEmail"
+                );
+
+            const button =
+                document.getElementById(
+                    "newsletterButton"
+                );
+
+            const success =
+                document.querySelector(
+                    ".newsletter-success"
+                );
+
+
+            const email =
+                input?.value
+                    .trim()
+                    .toLowerCase();
+
+
+            if (
+                !email ||
+                !/^[^\s@]+@[^\s@]+\.[^\s@]+$/
+                    .test(email)
+            ) {
+
+                showNotification(
+                    "Please enter a valid email.",
+                    "warning"
+                );
+
+                return;
+            }
+
+
+            if (button) {
+
+                button.disabled =
+                    true;
+
+                button.textContent =
+                    "SUBSCRIBING...";
+            }
+
+
+            try {
+
+                const {
+                    error
+                } =
+                    await supabaseClient
+                        .from(
+                            "subscribers"
+                        )
+                        .insert({
+                            email
+                        });
+
+
+                if (error) {
+
+                    if (
+                        error.code ===
+                        "23505"
+                    ) {
+
+                        showNotification(
+                            "You are already subscribed.",
+                            "warning"
+                        );
+
+                    } else {
+
+                        throw error;
+                    }
+
+                } else {
+
+                    if (success) {
+
+                        success.textContent =
+                            "Thank you for subscribing!";
+
+                        success.style.display =
+                            "";
+                    }
+
+                    showNotification(
+                        "Subscribed successfully.",
+                        "success"
+                    );
+
+
+                    if (input) {
+                        input.value =
+                            "";
+                    }
+                }
+
+            } catch (error) {
+
+                console.error(
+                    "Newsletter:",
+                    error
+                );
+
+                showNotification(
+                    "Could not subscribe right now.",
+                    "error"
+                );
+
+            } finally {
+
+                if (button) {
+
+                    button.disabled =
+                        false;
+
+                    button.textContent =
+                        "SUBSCRIBE";
+                }
+            }
+        }
+    );
+
+    form.dataset.newsletterHandled =
+        "true";
+}
+
+
+/* =========================================================
    COUPON BAR
-===================================================== */
+========================================================= */
 
 async function loadCouponBar() {
 
-    const couponBar =
+    const bar =
         document.getElementById(
             "couponBar"
         );
 
-
-    const couponTrack =
+    const track =
         document.getElementById(
             "couponBarTrack"
         );
 
 
     if (
-        !couponBar ||
-        !couponTrack
+        !bar ||
+        !track ||
+        !supabaseClient
     ) {
 
         return;
-
-    }
-
-
-    couponBar.style.display =
-        "none";
-
-
-    couponTrack.innerHTML =
-        "";
-
-
-    if (!supabaseClient) {
-
-        return;
-
     }
 
 
@@ -4170,7 +4129,7 @@ async function loadCouponBar() {
             await supabaseClient
                 .from("coupons")
                 .select(
-                    "code, discount_type, discount_value, created_at"
+                    "code,discount_type,discount_value,is_active,starts_at,expires_at,usage_limit,used_count"
                 )
                 .eq(
                     "is_active",
@@ -4185,422 +4144,1059 @@ async function loadCouponBar() {
 
 
         if (error) {
-
-            console.error(
-                "Coupon error:",
-                error
-            );
-
-            return;
-
+            throw error;
         }
+
+
+        const activeCoupons =
+            (
+                data || []
+            )
+                .filter(
+                    coupon =>
+                        couponIsActive(
+                            coupon
+                        )
+                );
 
 
         if (
-            !data ||
-            !data.length
+            !activeCoupons.length
         ) {
 
-            return;
+            bar.style.display =
+                "none";
 
+            return;
         }
 
 
-        const couponHTML =
-            data
+        track.innerHTML =
+            activeCoupons
                 .map(
-                    function (coupon) {
+                    coupon => {
 
-                        const type =
-                            String(
-                                coupon.discount_type ||
-                                ""
-                            ).toLowerCase();
-
-
-                        let discountText;
-
-
-                        if (
-                            type ===
+                        const discount =
+                            coupon.discount_type ===
                             "percentage"
-                        ) {
-
-                            discountText =
-                                Number(
-                                    coupon.discount_value ||
-                                    0
-                                ) +
-                                "% OFF";
-
-                        } else {
-
-                            discountText =
-                                Number(
-                                    coupon.discount_value ||
-                                    0
-                                ) +
-                                " EGP OFF";
-
-                        }
+                            ?
+                            `${coupon.discount_value}% OFF`
+                            :
+                            `${formatPrice(
+                                coupon.discount_value
+                            )} EGP OFF`;
 
 
-                        return (
-
-                            '<span class="coupon-item">' +
-
-                                '<span class="coupon-icon">' +
-                                    '✦' +
-                                '</span>' +
-
-                                '<span>' +
-
-                                    'USE CODE ' +
-
-                                    '<span class="coupon-code">' +
-                                        escapeHTML(
-                                            coupon.code
-                                        ) +
-                                    '</span>' +
-
-                                '</span>' +
-
-                                '<span class="coupon-discount">' +
-                                    escapeHTML(
-                                        discountText
-                                    ) +
-                                '</span>' +
-
-                            '</span>'
-
-                        );
-
+                        return `
+                            <span>
+                                Use code
+                                <strong>
+                                    ${escapeHTML(
+                                        coupon.code
+                                    )}
+                                </strong>
+                                for
+                                <strong>
+                                    ${escapeHTML(
+                                        discount
+                                    )}
+                                </strong>
+                            </span>
+                        `;
                     }
                 )
-                .join("");
+                .join(
+                    `<span class="coupon-separator">•</span>`
+                );
 
 
-        couponTrack.innerHTML =
-            couponHTML +
-            couponHTML;
-
-
-        couponBar.style.display =
-            "flex";
+        bar.style.display =
+            "";
 
     } catch (error) {
 
-        console.error(
-            "Coupon bar error:",
+        console.warn(
+            "Coupon bar:",
             error
         );
 
-        couponBar.style.display =
+        bar.style.display =
             "none";
-
     }
-
 }
 
 
-/* =====================================================
-   NEWSLETTER
-   SAVE EMAIL TO SUPABASE
-===================================================== */
+function couponIsActive(
+    coupon
+) {
 
-function setupNewsletter() {
+    if (
+        !coupon ||
+        coupon.is_active !== true
+    ) {
 
-    const newsletterForm =
-        document.querySelector(
-            ".newsletter-form"
-        );
-
-
-    const newsletterSuccess =
-        document.querySelector(
-            ".newsletter-success"
-        );
-
-
-    if (!newsletterForm) {
-
-        console.warn(
-            "Newsletter form was not found."
-        );
-
-        return;
-
+        return false;
     }
 
 
-    const emailInput =
-        newsletterForm.querySelector(
-            'input[type="email"]'
+    const now =
+        Date.now();
+
+
+    if (
+        coupon.starts_at &&
+        new Date(
+            coupon.starts_at
+        ).getTime() >
+        now
+    ) {
+
+        return false;
+    }
+
+
+    if (
+        coupon.expires_at &&
+        new Date(
+            coupon.expires_at
+        ).getTime() <
+        now
+    ) {
+
+        return false;
+    }
+
+
+    const limit =
+        Number(
+            coupon.usage_limit ||
+            0
         );
 
 
-    const submitButton =
-        newsletterForm.querySelector(
-            "button"
+    const used =
+        Number(
+            coupon.used_count ||
+            0
         );
 
 
     if (
-        !emailInput ||
-        !submitButton
+        limit > 0 &&
+        used >= limit
     ) {
 
-        console.warn(
-            "Newsletter email input or button was not found."
-        );
-
-        return;
-
+        return false;
     }
 
 
-    newsletterForm.addEventListener(
-        "submit",
-        async function (event) {
+    return true;
+}
+
+
+/* =========================================================
+   KEYBOARD
+========================================================= */
+
+document.addEventListener(
+    "keydown",
+    event => {
+
+        if (
+            event.key ===
+            "Escape"
+        ) {
+
+            closeProductModal();
+
+            closeCart();
+
+            document
+                .querySelectorAll(
+                    ".modal-overlay.active"
+                )
+                .forEach(
+                    modal =>
+                        modal.classList.remove(
+                            "active"
+                        )
+                );
+        }
+    }
+);
+
+
+/* =========================================================
+   GLOBAL CART CLOSE ACTION
+========================================================= */
+
+document.addEventListener(
+    "click",
+    event => {
+
+        const action =
+            event.target.closest(
+                "[data-cart-action]"
+            );
+
+        if (!action) {
+            return;
+        }
+
+
+        const type =
+            action.dataset.cartAction;
+
+
+        if (
+            type ===
+            "open"
+        ) {
 
             event.preventDefault();
 
+            openCart();
 
-            const email =
-                emailInput.value
-                    .trim()
-                    .toLowerCase();
+            return;
+        }
 
 
-            if (!email) {
+        if (
+            type ===
+            "close"
+        ) {
 
-                showSiteMessage(
-                    "Please enter your email address."
+            event.preventDefault();
+
+            closeCart();
+
+            return;
+        }
+
+
+        if (
+            type ===
+            "checkout"
+        ) {
+
+            event.preventDefault();
+
+            handleCheckout();
+
+            return;
+        }
+    }
+);
+
+
+/* =========================================================
+   MODAL ADD TO CART
+========================================================= */
+
+document.addEventListener(
+    "click",
+    event => {
+
+        const button =
+            event.target.closest(
+                ".modal-add-cart"
+            );
+
+        if (!button) {
+            return;
+        }
+
+
+        if (
+            !selectedProduct
+        ) {
+            return;
+        }
+
+
+        addToCart(
+            selectedProduct,
+            selectedSize,
+            modalQuantity
+        );
+    }
+);
+
+
+/* =========================================================
+   HOME / SHOP IMAGE PRELOAD
+========================================================= */
+
+function preloadProductImages() {
+
+    products.forEach(
+        product => {
+
+            getProductImages(
+                product
+            )
+                .slice(
+                    0,
+                    3
+                )
+                .forEach(
+                    url => {
+
+                        const image =
+                            new Image();
+
+                        image.src =
+                            url;
+                    }
                 );
-
-                return;
-
-            }
-
-
-            const emailPattern =
-                /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        }
+    );
+}
 
 
-            if (
-                !emailPattern.test(email)
-            ) {
+/* =========================================================
+   FINAL PRODUCT IMAGE PRELOAD
+========================================================= */
 
-                showSiteMessage(
-                    "Please enter a valid email address."
-                );
+document.addEventListener(
+    "DOMContentLoaded",
+    () => {
 
-                return;
-
-            }
-
-
-            if (!supabaseClient) {
-
-                console.error(
-                    "Supabase is not initialized."
-                );
-
-                showSiteMessage(
-                    "Unable to connect to the store. Please try again."
-                );
-
-                return;
-
-            }
+        setTimeout(
+            preloadProductImages,
+            500
+        );
+    }
+);
 
 
-            const originalButtonText =
-                submitButton.textContent;
+/* =========================================================
+   OPTIONAL SEARCH
+========================================================= */
+
+function setupProductSearch() {
+
+    const searchInputs =
+        document.querySelectorAll(
+            ".search-input, #searchInput"
+        );
 
 
-            submitButton.disabled =
-                true;
+    searchInputs.forEach(
+        input => {
+
+            input.addEventListener(
+                "input",
+                () => {
+
+                    const value =
+                        input.value
+                            .trim()
+                            .toLowerCase();
 
 
-            submitButton.textContent =
-                "JOINING...";
+                    if (!value) {
 
-
-            try {
-
-                console.log(
-                    "Saving newsletter email:",
-                    email
-                );
-
-
-                const {
-                    data,
-                    error
-                } =
-                    await supabaseClient
-                        .from("subscribers")
-                        .insert([
-                            {
-                                email: email
-                            }
-                        ])
-                        .select()
-                        .single();
-
-
-                if (error) {
-
-                    console.error(
-                        "Newsletter Supabase error:",
-                        error
-                    );
-
-
-                    const errorMessage =
-                        String(
-                            error.message || ""
-                        ).toLowerCase();
-
-
-                    /*
-                     * Duplicate email
-                     */
-
-                    if (
-                        error.code === "23505" ||
-                        errorMessage.includes(
-                            "duplicate"
-                        ) ||
-                        errorMessage.includes(
-                            "unique"
-                        )
-                    ) {
-
-                        showNewsletterSuccess(
-                            newsletterForm,
-                            newsletterSuccess,
-                            "You're Already In.",
-                            "This email is already subscribed."
-                        );
+                        applyFilters();
 
                         return;
-
                     }
 
 
-                    showSiteMessage(
-                        "Could not save your email. Please try again."
+                    filteredProducts =
+                        products.filter(
+                            product => {
+
+                                return [
+
+                                    product.name,
+
+                                    product.color,
+
+                                    product.category,
+
+                                    product.subcategory,
+
+                                    product.description
+
+                                ]
+                                    .filter(Boolean)
+                                    .some(
+                                        text =>
+                                            String(
+                                                text
+                                            )
+                                                .toLowerCase()
+                                                .includes(
+                                                    value
+                                                )
+                                    );
+                            }
+                        );
+
+
+                    renderShopProducts();
+                }
+            );
+        }
+    );
+}
+
+
+/* =========================================================
+   SEARCH INITIALIZATION
+========================================================= */
+
+document.addEventListener(
+    "DOMContentLoaded",
+    setupProductSearch
+);
+
+
+/* =========================================================
+   MOBILE NAVIGATION
+========================================================= */
+
+document.addEventListener(
+    "DOMContentLoaded",
+    () => {
+
+        const menuButton =
+            document.querySelector(
+                ".mobile-menu-btn, .menu-toggle"
+            );
+
+        const nav =
+            document.querySelector(
+                ".nav-links"
+            );
+
+
+        if (
+            !menuButton ||
+            !nav
+        ) {
+
+            return;
+        }
+
+
+        menuButton.addEventListener(
+            "click",
+            () => {
+
+                nav.classList.toggle(
+                    "active"
+                );
+
+                menuButton.classList.toggle(
+                    "active"
+                );
+            }
+        );
+
+
+        nav
+            .querySelectorAll(
+                "a"
+            )
+            .forEach(
+                link => {
+
+                    link.addEventListener(
+                        "click",
+                        () => {
+
+                            nav.classList.remove(
+                                "active"
+                            );
+
+                            menuButton.classList.remove(
+                                "active"
+                            );
+                        }
+                    );
+                }
+            );
+    }
+);
+/* =========================================================
+   FIGURE SCRUB - FINAL FIX PATCH
+   Fixes:
+   - Product modal hidden attribute
+   - Cart drawer hidden attribute
+   - Modal close button
+   - Modal overlay
+   - Cart close button
+   - Cart overlay
+   - Checkout button
+   - Duplicate Add To Cart
+   - Duplicate Cart opening
+========================================================= */
+
+document.addEventListener("DOMContentLoaded", () => {
+
+    /* =====================================================
+       ELEMENTS
+    ===================================================== */
+
+    const modal =
+        document.getElementById("productModal");
+
+    const cartDrawer =
+        document.getElementById("cartDrawer");
+
+
+    /* =====================================================
+       PRODUCT MODAL
+    ===================================================== */
+
+    if (modal) {
+
+        /*
+         * The HTML uses hidden="".
+         * Make sure opening the modal removes it.
+         */
+
+        const originalOpenProductModal =
+            window.openProductModal;
+
+        /*
+         * Remove direct listeners from the existing
+         * modal add button by replacing the element.
+         */
+
+        const addButton =
+            modal.querySelector(".modal-add-cart");
+
+        if (addButton) {
+
+            const cleanButton =
+                addButton.cloneNode(true);
+
+            addButton.replaceWith(
+                cleanButton
+            );
+
+
+            cleanButton.addEventListener(
+                "click",
+                event => {
+
+                    event.preventDefault();
+
+                    event.stopImmediatePropagation();
+
+                    if (!selectedProduct) {
+                        return;
+                    }
+
+                    addToCart(
+                        selectedProduct,
+                        selectedSize,
+                        modalQuantity
+                    );
+                }
+            );
+        }
+
+
+        /*
+         * Fix close button.
+         */
+
+        const closeButton =
+            modal.querySelector(".modal-close");
+
+        if (closeButton) {
+
+            closeButton.addEventListener(
+                "click",
+                event => {
+
+                    event.preventDefault();
+
+                    event.stopPropagation();
+
+                    closeProductModal();
+                }
+            );
+        }
+
+
+        /*
+         * Fix overlay click.
+         */
+
+        const overlay =
+            modal.querySelector(".modal-overlay");
+
+        if (overlay) {
+
+            overlay.addEventListener(
+                "click",
+                event => {
+
+                    if (
+                        event.target === overlay
+                    ) {
+
+                        closeProductModal();
+                    }
+                }
+            );
+        }
+
+
+        /*
+         * Make the modal actually visible.
+         */
+
+        const observer =
+            new MutationObserver(() => {
+
+                if (
+                    modal.classList.contains(
+                        "active"
+                    )
+                ) {
+
+                    modal.hidden = false;
+
+                } else {
+
+                    modal.hidden = true;
+                }
+            });
+
+
+        observer.observe(
+            modal,
+            {
+                attributes: true,
+                attributeFilter: [
+                    "class"
+                ]
+            }
+        );
+
+
+        /*
+         * Initial state.
+         */
+
+        if (
+            !modal.classList.contains(
+                "active"
+            )
+        ) {
+
+            modal.hidden = true;
+        }
+    }
+
+
+    /* =====================================================
+       CART DRAWER
+    ===================================================== */
+
+    if (cartDrawer) {
+
+        /*
+         * Existing .cart-btn has its own listener
+         * AND data-cart-action listener.
+         *
+         * Replace the button to remove the duplicate
+         * direct listener.
+         */
+
+        document
+            .querySelectorAll(".cart-btn")
+            .forEach(button => {
+
+                const cleanButton =
+                    button.cloneNode(true);
+
+                button.replaceWith(
+                    cleanButton
+                );
+            });
+
+
+        /*
+         * Cart close button.
+         */
+
+        const closeButton =
+            cartDrawer.querySelector(
+                ".cart-close"
+            );
+
+        if (closeButton) {
+
+            /*
+             * Clone it so old listeners are removed.
+             */
+
+            const cleanButton =
+                closeButton.cloneNode(true);
+
+            closeButton.replaceWith(
+                cleanButton
+            );
+
+
+            cleanButton.addEventListener(
+                "click",
+                event => {
+
+                    event.preventDefault();
+
+                    event.stopPropagation();
+
+                    closeCart();
+                }
+            );
+        }
+
+
+        /*
+         * Cart overlay.
+         */
+
+        const overlay =
+            cartDrawer.querySelector(
+                ".cart-overlay"
+            );
+
+        if (overlay) {
+
+            overlay.addEventListener(
+                "click",
+                event => {
+
+                    if (
+                        event.target === overlay
+                    ) {
+
+                        closeCart();
+                    }
+                }
+            );
+        }
+
+
+        /*
+         * Checkout button.
+         */
+
+        const checkout =
+            cartDrawer.querySelector(
+                ".checkout-btn"
+            );
+
+        if (checkout) {
+
+            const cleanCheckout =
+                checkout.cloneNode(true);
+
+            checkout.replaceWith(
+                cleanCheckout
+            );
+
+
+            cleanCheckout.addEventListener(
+                "click",
+                event => {
+
+                    event.preventDefault();
+
+                    handleCheckout();
+                }
+            );
+        }
+
+
+        /*
+         * Continue Shopping.
+         */
+
+        cartDrawer.addEventListener(
+            "click",
+            event => {
+
+                const button =
+                    event.target.closest(
+                        ".continue-shopping"
                     );
 
+                if (!button) {
                     return;
-
                 }
 
+                event.preventDefault();
 
-                console.log(
-                    "Newsletter subscriber saved:",
-                    data
-                );
-
-
-                emailInput.value =
-                    "";
+                closeCart();
+            }
+        );
 
 
-                showNewsletterSuccess(
-                    newsletterForm,
-                    newsletterSuccess,
-                    "You're In.",
-                    "Your 5% discount is ready."
-                );
+        /*
+         * Keep hidden attribute synchronized.
+         */
 
-            } catch (error) {
+        const observer =
+            new MutationObserver(() => {
 
-                console.error(
-                    "Newsletter unexpected error:",
-                    error
-                );
+                if (
+                    cartDrawer.classList.contains(
+                        "active"
+                    )
+                ) {
 
+                    cartDrawer.hidden = false;
 
-                showSiteMessage(
-                    "Something went wrong. Please try again."
-                );
+                } else {
 
-            } finally {
-
-                submitButton.disabled =
-                    false;
+                    cartDrawer.hidden = true;
+                }
+            });
 
 
-                submitButton.textContent =
-                    originalButtonText;
+        observer.observe(
+            cartDrawer,
+            {
+                attributes: true,
+                attributeFilter: [
+                    "class"
+                ]
+            }
+        );
+
+
+        /*
+         * Initial state.
+         */
+
+        if (
+            !cartDrawer.classList.contains(
+                "active"
+            )
+        ) {
+
+            cartDrawer.hidden = true;
+        }
+    }
+
+
+    /* =====================================================
+       FIX OPEN / CLOSE FUNCTIONS
+       Override the existing behavior safely.
+    ===================================================== */
+
+    const originalOpenCart =
+        window.openCart;
+
+    const originalCloseCart =
+        window.closeCart;
+
+
+    /*
+     * We cannot redeclare the original functions,
+     * so we use the existing functions and synchronize
+     * the hidden attribute after every click.
+     */
+
+    document.addEventListener(
+        "click",
+        () => {
+
+            setTimeout(() => {
+
+                if (modal) {
+
+                    modal.hidden =
+                        !modal.classList.contains(
+                            "active"
+                        );
+                }
+
+                if (cartDrawer) {
+
+                    cartDrawer.hidden =
+                        !cartDrawer.classList.contains(
+                            "active"
+                        );
+                }
+
+            }, 0);
+        },
+        true
+    );
+
+
+    /* =====================================================
+       INITIAL CART STATE
+    ===================================================== */
+
+    if (cartDrawer) {
+
+        renderCart();
+
+        cartDrawer.hidden =
+            !cartDrawer.classList.contains(
+                "active"
+            );
+    }
+
+});
+/* =========================================================
+   FOOTER SOCIAL MEDIA
+   LOAD FROM STORE SETTINGS
+========================================================= */
+
+async function loadFooterSocials() {
+
+    try {
+
+        if (!supabaseClient) {
+            return;
+        }
+
+        const { data, error } =
+            await supabaseClient
+                .from("store-settings")
+                .select("setting_key, setting_value");
+
+        if (error) {
+            console.error(
+                "Failed to load social settings:",
+                error
+            );
+            return;
+        }
+
+        if (!data || !data.length) {
+            return;
+        }
+
+        const settings = {};
+
+        data.forEach(setting => {
+
+            settings[setting.setting_key] =
+                setting.setting_value || "";
+
+        });
+
+
+        const footerSocials =
+            document.getElementById("footerSocials");
+
+        const instagram =
+            document.getElementById("footerInstagram");
+
+        const facebook =
+            document.getElementById("footerFacebook");
+
+        const whatsapp =
+            document.getElementById("footerWhatsapp");
+
+
+        if (!footerSocials) {
+            return;
+        }
+
+
+        let hasSocial = false;
+
+
+        /* =========================
+           INSTAGRAM
+        ========================= */
+
+        if (
+            instagram &&
+            settings.instagram
+        ) {
+
+            instagram.href =
+                settings.instagram.trim();
+
+            instagram.hidden = false;
+
+            hasSocial = true;
+        }
+
+
+        /* =========================
+           FACEBOOK
+        ========================= */
+
+        if (
+            facebook &&
+            settings.facebook
+        ) {
+
+            facebook.href =
+                settings.facebook.trim();
+
+            facebook.hidden = false;
+
+            hasSocial = true;
+        }
+
+
+        /* =========================
+           WHATSAPP
+        ========================= */
+
+        if (
+            whatsapp &&
+            settings.whatsapp
+        ) {
+
+            let whatsappValue =
+                settings.whatsapp.trim();
+
+
+            if (
+                whatsappValue.startsWith("http://") ||
+                whatsappValue.startsWith("https://")
+            ) {
+
+                whatsapp.href =
+                    whatsappValue;
+
+            } else {
+
+                whatsapp.href =
+                    "https://wa.me/" +
+                    whatsappValue.replace(
+                        /\D/g,
+                        ""
+                    );
 
             }
 
+
+            whatsapp.hidden = false;
+
+            hasSocial = true;
         }
-    );
-
-}
 
 
-/* =====================================================
-   NEWSLETTER SUCCESS MESSAGE
-===================================================== */
-
-function showNewsletterSuccess(
-    newsletterForm,
-    newsletterSuccess,
-    title,
-    message
-) {
-
-    if (newsletterForm) {
-
-        newsletterForm.style.display =
-            "none";
-
-    }
+        footerSocials.hidden =
+            !hasSocial;
 
 
-    if (newsletterSuccess) {
+    } catch (error) {
 
-        newsletterSuccess.hidden =
-            false;
-
-
-        newsletterSuccess.innerHTML =
-
-            '<span class="success-icon">✓</span>' +
-
-            '<span>' +
-
-                '<strong>' +
-                    escapeHTML(
-                        title
-                    ) +
-                '</strong>' +
-
-                '<small>' +
-                    escapeHTML(
-                        message
-                    ) +
-                '</small>' +
-
-            '</span>';
-
-
-        newsletterSuccess.classList.add(
-            "show"
-        );
-
-    } else {
-
-        showSiteMessage(
-            message
+        console.error(
+            "Footer socials error:",
+            error
         );
 
     }
-
 }
+

@@ -53,15 +53,6 @@
 <div class="nav-actions">
 
     <button
-        class="search-btn"
-        type="button"
-        aria-label="Search"
-    >
-        Search
-    </button>
-
-
-    <button
         class="cart-btn"
         type="button"
         aria-label="Shopping Cart"
@@ -91,23 +82,18 @@
             FIGURE SCRUB
         </p>
 
-
         <h1>
             Designed to Move.<br>
             Made to Perform.
         </h1>
 
-
         <p class="hero-description">
-
             Premium scrubs designed for comfort,
             confidence, and everyday performance.
-
         </p>
 
-
         <a
-            href="#shop"
+            href="shop.html"
             class="hero-button"
         >
             SHOP NOW →
@@ -116,13 +102,28 @@
     </div>
 
 
-    <div class="hero-image">
+    <a
+        href="shop.html"
+        class="hero-image"
+        aria-label="Shop Figure Scrub"
+    >
 
-        <div class="image-placeholder">
-            FIGURE SCRUB
-        </div>
+        <!--
+            HERO IMAGE
+            Replace "hero.jpg" with your image filename.
+        -->
 
-    </div>
+        <img
+            src="images/hero.jpg"
+            alt="Figure Scrub - Shop Now"
+        >
+
+        <!-- Clickable SHOP NOW overlay -->
+        <span class="hero-image-shop">
+            SHOP NOW →
+        </span>
+
+    </a>
 
 </section>
 
@@ -381,15 +382,67 @@
 <!-- ==================== FOOTER ==================== -->
 
 <footer class="footer">
-<div class="footer-logo">
-    FIGURE SCRUB
-</div>
+
+    <div class="footer-logo">
+        FIGURE SCRUB
+    </div>
 
 
-<p>
-    © 2026 Figure Scrub.
-    All rights reserved.
-</p>
+    <div
+        class="footer-socials"
+        id="footerSocials"
+        hidden
+    >
+
+        <p class="footer-social-title">
+            FOLLOW FIGURE SCRUB
+        </p>
+
+
+        <div class="footer-social-links">
+
+            <a
+                id="footerInstagram"
+                href="#"
+                target="_blank"
+                rel="noopener noreferrer"
+                hidden
+            >
+                Instagram
+            </a>
+
+
+            <a
+                id="footerFacebook"
+                href="#"
+                target="_blank"
+                rel="noopener noreferrer"
+                hidden
+            >
+                Facebook
+            </a>
+
+
+            <a
+                id="footerWhatsapp"
+                href="#"
+                target="_blank"
+                rel="noopener noreferrer"
+                hidden
+            >
+                WhatsApp
+            </a>
+
+        </div>
+
+    </div>
+
+
+    <p>
+        © 2026 Figure Scrub.
+        All rights reserved.
+    </p>
+
 </footer>
 
 <!-- ==================== QUICK VIEW MODAL ==================== -->
